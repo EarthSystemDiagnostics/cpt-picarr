@@ -2,3 +2,9 @@ language: r
 
 script:
   - make test
+  
+deploy:
+  provider: script
+  script: deploy.R
+  on:
+    branch: master
