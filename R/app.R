@@ -89,11 +89,12 @@ ui <- fluidPage(
                           plotOutput("plot_stddev"),
                           plotOutput("plot_probes")
                  ),
-                 tabPanel("Summary plots", br(),
+                 tabPanel("Summary plot", br(),
                           p("This section contains plots comparing the data quality of different datasets."),
                           selectInput("datasets_for_plotting_summary", "Select the datasets for plotting", c("Dataset A", "Dataset B", "Dataset C"), 
                                       multiple = TRUE, selected = c("Dataset A", "Dataset B", "Dataset C")),
-                          p("TODO: Plot the error of the control standard")
+                          plotOutput("plot_summary"),
+                          p("TODO: What other plots would you like to have?")
                  )
                )
              )
@@ -119,6 +120,11 @@ server <- function(input, output){
                                     grid()})
   output$plot_stddev <- renderPlot({plot(1:5, c(0.001, 0.0015, 0.0009, 0.003, 0.00005), xlab = "probe", ylab = "std deviation", main = "standard deviation of each probe", col = "blue")
                                     grid()})
+  
+  output$plot_summary <- renderPlot({plot(c(1, 2, 3), c(0.02, 0.015, 0.3), main = "Error of the control standard", 
+                                          ylab = "Error of the control standard", xlab = "dataset", xaxt = "n", col = "blue")
+                                     axis(1, at = 1:3, labels = c("Dataset A", "Dataset B", "Dataset C"))
+                                     grid()})
 }
 
 shinyApp(ui, server)
