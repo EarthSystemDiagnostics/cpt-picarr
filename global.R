@@ -1,15 +1,17 @@
 blue <- "color: #fff; background-color: #337ab7; border-color: #2e6da4"
 
 
-df_best_prot_template <- data.frame(
+df_assembly_prot_template <- data.frame(
   id_1 = letters[1:20],
   id_2 = LETTERS[1:20],
   num_injections = as.integer(3),
   is_standard = FALSE,
-  standard_true_value = "",
+  standard_oxy_17 = "",
+  standard_oxy_18 = "",
+  standard_dtr = "",
   stringsAsFactors = FALSE
 )
-colnames(df_best_prot_template) <- c("Identifier 1", "Identifier 2", "Number of injections", "Is standard?", "True isotope concentration (only for standards)")
+colnames(df_assembly_prot_template) <- c("Identifier 1", "Identifier 2", "Number of injections", "Is standard?", "True oxy-17 (only for standards)", "True oxy-18 (only for standards)", "True dtr (only for standards)")
 
 
 df_processing_template <- data.frame(

@@ -19,7 +19,7 @@ ui <- fluidPage(
              wellPanel(
                h3("Create a new project"),
                textInput("proj_name", "Project name"),
-               textInput("proj_people", "People involved (optional)"),
+               textInput("proj_lead", "Project lead(s) (optional)"),
                textAreaInput("proj_additional_info", "Additional info (optional)"),
                dateInput("proj_date", "Expedition date (optional)"),
                actionButton("create_project", "Create new project", style = blue)
@@ -30,38 +30,32 @@ ui <- fluidPage(
              )
     ),
     
-    tabPanel("Generate a Bestückungsprotokoll",
+    tabPanel("Generate a assemply protocol",
              wellPanel(
                h3("Select a template to use"),
                selectInput("template_for_bst_prot", "", c("Template A", "Template B")),
                actionButton("load_template", "Load selected template")
              ),
-             rHandsontableOutput("ho_table_best_prot"), br(),
+             rHandsontableOutput("ho_table_assembly_prot"), br(),
              wellPanel(
                h3("All done?"),
                actionButton("new_template", "Save as new template"),
-               actionButton("generate_best_protocol", "Generate Bestückungsprotokoll", style = blue)
+               actionButton("download_assembly_protocol", "Download assembly protocol", style = blue)
              )
     ),
              
     tabPanel("Upload measurement data",
              h3("Upload a file with isotope measurement data"), br(),
-             wellPanel(tabsetPanel(
-               tabPanel(
-                 "Input file", br(),
+             wellPanel(
                  fileInput("input_file", "Select a file to upload"),
                  textInput("dataset_name", "Name the dataset"),
                  dateInput("measurement_date", "When was this data measured?"),
-                 textAreaInput("file_addtional_info", "Information about the dataset (optional)")
-               ),
-               tabPanel(
-                 "Templates", br(),
-                 selectInput("template_for_file_upload", "Select a Bestückungsprotokoll template to associate with the dataset", c("Template A", "Template B")),
+                 textAreaInput("file_addtional_info", "Information about the dataset (optional)"),
+                 selectInput("template_for_file_upload", "Select a assembly protocol template to associate with the dataset", c("Template A", "Template B")),
                  selectInput("processing_template", "Select a template for the post-processing of this dataset", c("Template 1", "Template 2", "+ create new template")),
                  rHandsontableOutput("ho_table_processing"), br(),
                  actionButton("save_processing_template", "Save as new processing template")
-               )
-             )),
+               ),
              actionButton("upload_file", "Upload the dataset", style = blue)
     ),
     
@@ -87,7 +81,7 @@ ui <- fluidPage(
                           selectInput("dataset_for_plotting_at_dataset_level", "Select a dataset for plotting", c("Dataset A", "Dataset B", "Dataset C")),
                           plotOutput("plot_memory_correction"),
                           plotOutput("plot_drift_correction"),
-                          p("TODO: plot calibration. What should the calibration plot look like?")
+                          plotOutput("plot_calibration")
                  ),
                  tabPanel("Probe-level plots", br(),
                           p("This section contains plots with regards to the measured values for individual probes in a specific dataset."),
@@ -107,34 +101,62 @@ ui <- fluidPage(
     ),
     
     tabPanel("Instrument performance",
-             h3("TODO")
+             h3("Instrument performance"),
+             p("Take a look at cross-project statistics to analyze instrument performance."), br(),
+             wellPanel(
+               selectInput("device", "Select a measurement instrument", c("All instruments", "Device A", "Device B")),
+               dateRangeInput("timespan", "Select a timespan to look at"),
+               actionButton("show_instrument_stats", "Show me stats for the selected device and timespan", style = blue)
+             ),
+             plotOutput("instrument_error"),
+             h4("[What other plots would you like to see here?]")
     )
   )
 )
 
 server <- function(input, output){
-  output$ho_table_best_prot <- renderRHandsontable(rhandsontable(df_best_prot_template))
+  output$ho_table_assembly_prot <- renderRHandsontable(rhandsontable(df_assembly_prot_template))
   output$ho_table_processing <- renderRHandsontable(rhandsontable(df_processing_template))
   
-  output$plot_memory_correction <- renderPlot(plot(read.csv("../www/memory_correction.csv", header = FALSE), main = "memory correction", 
-                                                   ylab = "memory coefficient", xlab = "number of injections", type = "b", col = "blue"))
-  output$plot_drift_correction <- renderPlot(plot(read.csv("../www/drift_correction.csv", header = FALSE), main = "drift correction", 
-                                                  ylab = "deviation from initial measurement", xlab = "standard block", type = "b", col = "blue"))
+  output$plot_memory_correction <- renderPlot({
+    plot(read.csv("www/memory_correction.csv", header = FALSE), main = "memory correction", ylab = "memory coefficient", xlab = "number of injections", type = "b", col = "blue")
+    grid()
+  })
+  output$plot_drift_correction <- renderPlot({
+    plot(read.csv("www/drift_correction.csv", header = FALSE), main = "drift correction", ylab = "deviation from initial measurement", xlab = "standard block", type = "b", col = "blue")
+    grid()
+  })
+  output$plot_calibration <- renderPlot({
+    plot(c(12.8, 14, 7, 15.4, 13.1), c(12.8, 16, 6.9, 15.4, 13.0), main = "calibration", xlab = "True value of standard", ylab = "Measured value of standard", col = "blue", type = "p")
+    lines(c(1, 100), c(1, 100), col = "grey")
+    grid()
+  })
 
   
-  output$plot_probes <- renderPlot({plot(df$probe, df$d180_measured, type = "p", col = "blue", xlab = "probe", ylab = "d180")
-                                    points(df$probe, df$d180_memory_corrected, col = "red")
-                                    points(df$probe, df$d180_drift_corrected, col = "black")
-                                    points(df$probe, df$d180_calibrated, col = "purple")
-                                    legend("topleft", c("measured value", "memory corrected", "drift corrected", "calibrated"), fill = c("blue", "red", "black", "purple"))
-                                    grid()})
-  output$plot_stddev <- renderPlot({plot(1:5, c(0.001, 0.0015, 0.0009, 0.003, 0.00005), xlab = "probe", ylab = "std deviation", main = "standard deviation of each probe", col = "blue")
-                                    grid()})
+  output$plot_probes <- renderPlot({
+    plot(df$probe, df$d180_measured, type = "p", col = "blue", xlab = "probe", ylab = "d180")
+    points(df$probe, df$d180_memory_corrected, col = "red")
+    points(df$probe, df$d180_drift_corrected, col = "black")
+    points(df$probe, df$d180_calibrated, col = "purple")
+    legend("topleft", c("measured value", "memory corrected", "drift corrected", "calibrated"), fill = c("blue", "red", "black", "purple"))
+    grid()
+  })
+  output$plot_stddev <- renderPlot({
+    plot(1:5, c(0.001, 0.0015, 0.0009, 0.003, 0.00005), xlab = "probe", ylab = "std deviation", main = "standard deviation of each probe", col = "blue")
+    grid()
+  })
   
-  output$plot_summary <- renderPlot({plot(c(1, 2, 3), c(0.02, 0.015, 0.3), main = "Error of the control standard", 
-                                          ylab = "Error of the control standard", xlab = "dataset", xaxt = "n", col = "blue")
-                                     axis(1, at = 1:3, labels = c("Dataset A", "Dataset B", "Dataset C"))
-                                     grid()})
+  output$plot_summary <- renderPlot({
+    plot(c(1, 2, 3), c(0.02, 0.015, 0.3), main = "Error of the control standard", ylab = "Error of the control standard", xlab = "dataset", xaxt = "n", col = "blue")
+    axis(1, at = 1:3, labels = c("Dataset A", "Dataset B", "Dataset C"))
+    grid()
+  })
+  
+  output$instrument_error <- renderPlot({
+    plot(1:4, c(0.1,0.12,0.15,0.18), main = "Error of the control standard over time", ylab = "Error of control standard", xlab = "time", xaxt = "n", col = "blue", type = "b")
+    axis(1, at = 1:4, labels = c("1.8.19", "2.8.19", "3.8.19", "4.8.19"))
+    grid()
+  })
 }
 
 shinyApp(ui, server)
