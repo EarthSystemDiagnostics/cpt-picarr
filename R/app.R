@@ -7,9 +7,10 @@ ui <- fluidPage(
   navlistPanel(
     "Welcome to Cpt. Picarr!",
     
-    tabPanel("Select a project",
+    tabPanel("Home",
              h3("Welcome to Cpt. Picarr!"), 
-             p("Start by loading an existing project or create a new one."), br(),
+             p("Start by loading an existing project or creating a new one. You can also look at cross-project 
+               statistics to analyze the performance of your measurement instruments over time."), br(),
              wellPanel(
                h3("Load an existing project"),
                selectInput("project_to_load", "Choose a project", c("Project A", "Project B", "Project C")),
@@ -22,6 +23,10 @@ ui <- fluidPage(
                textAreaInput("proj_additional_info", "Additional info (optional)"),
                dateInput("proj_date", "Expedition date (optional)"),
                actionButton("create_project", "Create new project", style = blue)
+             ),
+             wellPanel(
+               h3("Take a look at cross-project statistics"),
+               actionButton("go_to_cross_project_statistics", "Go to page 'Instrument performance'", style = blue)
              )
     ),
     
@@ -46,11 +51,12 @@ ui <- fluidPage(
                  "Input file", br(),
                  fileInput("input_file", "Select a file to upload"),
                  textInput("dataset_name", "Name the dataset"),
+                 dateInput("measurement_date", "When was this data measured?"),
                  textAreaInput("file_addtional_info", "Information about the dataset (optional)")
                ),
                tabPanel(
                  "Templates", br(),
-                 selectInput("template_for_file_upload", "Select a Bestückungsprotokoll template", c("Template A", "Template B")),
+                 selectInput("template_for_file_upload", "Select a Bestückungsprotokoll template to associate with the dataset", c("Template A", "Template B")),
                  selectInput("processing_template", "Select a template for the post-processing of this dataset", c("Template 1", "Template 2", "+ create new template")),
                  rHandsontableOutput("ho_table_processing"), br(),
                  actionButton("save_processing_template", "Save as new processing template")
@@ -89,7 +95,7 @@ ui <- fluidPage(
                           plotOutput("plot_stddev"),
                           plotOutput("plot_probes")
                  ),
-                 tabPanel("Summary plot", br(),
+                 tabPanel("Summary plots", br(),
                           p("This section contains plots comparing the data quality of different datasets."),
                           selectInput("datasets_for_plotting_summary", "Select the datasets for plotting", c("Dataset A", "Dataset B", "Dataset C"), 
                                       multiple = TRUE, selected = c("Dataset A", "Dataset B", "Dataset C")),
@@ -98,6 +104,10 @@ ui <- fluidPage(
                  )
                )
              )
+    ),
+    
+    tabPanel("Instrument performance",
+             h3("TODO")
     )
   )
 )
