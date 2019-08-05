@@ -1,7 +1,7 @@
 library(shiny)
 library(rhandsontable)
 
-blue <- "color: #fff; background-color: #337ab7; border-color: #2e6da4"
+source("global.R")
 
 ui <- fluidPage(
   navlistPanel(
@@ -79,12 +79,15 @@ ui <- fluidPage(
                  tabPanel("Dataset-level plots", br(),
                           p("This section contains plots concerning memory and drift correction, and the calibration for an individual dataset."),
                           selectInput("dataset_for_plotting_at_dataset_level", "Select a dataset for plotting", c("Dataset A", "Dataset B", "Dataset C")),
-                          p("TODO: memory correction plot, drift correction plot, calibration plot.")
+                          plotOutput("plot_memory_correction"),
+                          plotOutput("plot_drift_correction"),
+                          p("TODO: plot calibration. What should the calibration plot look like?")
                  ),
                  tabPanel("Probe-level plots", br(),
                           p("This section contains plots with regards to the measured values for individual probes in a specific dataset."),
                           selectInput("dataset_for_plotting_at_probe_level", "Select a dataset for plotting", c("Dataset A", "Dataset B", "Dataset C")),
-                          p("TODO: Plot the stddeviation, and the value after each processing step for each probe.")
+                          plotOutput("plot_stddev"),
+                          plotOutput("plot_probes")
                  ),
                  tabPanel("Summary plots", br(),
                           p("This section contains plots comparing the data quality of different datasets."),
@@ -95,38 +98,27 @@ ui <- fluidPage(
                )
              )
     )
-    
   )
 )
 
 server <- function(input, output){
-  
-  df_best_prot_template <- data.frame(
-    id_1 = letters[1:20],
-    id_2 = LETTERS[1:20],
-    num_injections = as.integer(3),
-    is_standard = FALSE,
-    standard_true_value = "",
-    stringsAsFactors = FALSE
-  )
-  colnames(df_best_prot_template) <- c("Identifier 1", "Identifier 2", "Number of injections", "Is standard?", "True isotope concentration (only for standards)")
   output$ho_table_best_prot <- renderRHandsontable(rhandsontable(df_best_prot_template))
-  
-  df_processing_template <- data.frame(
-    id_1 = letters[1:4],
-    id_2 = letters[4:1],
-    # true_16 = 1:4,
-    # true_17 = 1:4,
-    # true_18 = 1:4,
-    use_for_memory = TRUE,
-    use_for_drift = TRUE,
-    use_for_calibration = TRUE,
-    use_as_control_standard = FALSE,
-    stringsAsFactors = FALSE
-  )
-  colnames(df_processing_template) <- c("Identifier 1", "Identifier 2", # "True O-16 value", "True O-17 value", "True O-18 value", 
-                                        "Use for memory correction?", "Use for drift correction?", "Use for calibration?", "Use as control standard?")
   output$ho_table_processing <- renderRHandsontable(rhandsontable(df_processing_template))
+  
+  output$plot_memory_correction <- renderPlot(plot(read.csv("../www/memory_correction.csv", header = FALSE), main = "memory correction", 
+                                                   ylab = "memory coefficient", xlab = "number of injections", type = "b", col = "blue"))
+  output$plot_drift_correction <- renderPlot(plot(read.csv("../www/drift_correction.csv", header = FALSE), main = "drift correction", 
+                                                  ylab = "deviation from initial measurement", xlab = "standard block", type = "b", col = "blue"))
+
+  
+  output$plot_probes <- renderPlot({plot(df$probe, df$d180_measured, type = "p", col = "blue", xlab = "probe", ylab = "d180")
+                                    points(df$probe, df$d180_memory_corrected, col = "red")
+                                    points(df$probe, df$d180_drift_corrected, col = "black")
+                                    points(df$probe, df$d180_calibrated, col = "purple")
+                                    legend("topleft", c("measured value", "memory corrected", "drift corrected", "calibrated"), fill = c("blue", "red", "black", "purple"))
+                                    grid()})
+  output$plot_stddev <- renderPlot({plot(1:5, c(0.001, 0.0015, 0.0009, 0.003, 0.00005), xlab = "probe", ylab = "std deviation", main = "standard deviation of each probe", col = "blue")
+                                    grid()})
 }
 
 shinyApp(ui, server)
