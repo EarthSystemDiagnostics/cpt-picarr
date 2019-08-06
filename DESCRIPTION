@@ -1,4 +1,2 @@
 Imports:
-    shiny
-    rhandsontable
     testthat
