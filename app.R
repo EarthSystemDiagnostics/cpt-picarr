@@ -4,7 +4,7 @@ library(rhandsontable)
 source("global.R")
 
 ui <- navbarPage(
-    "Welcome to Cpt. Picarr!", id = "page",
+    "Cpt. Picarr", id = "page",
     
     tabPanel("Home",
              h3("Welcome to Cpt. Picarr!"), 
@@ -30,11 +30,29 @@ ui <- navbarPage(
     ),
     
     tabPanel("Project",
-             h3("Project page"),
-             p("TODO: display project metadata (name, project lead, ..)"), br(),
-             actionButton("go_assembly", "Generate an assembly protocol"),
-             actionButton("go_upload", "Upload measurement data"),
-             actionButton("go_process", "Process measurement data")
+             h3("Project A"),
+             wellPanel(
+               h3("Project information"),
+               p(strong("Project name: "), "Project A"),
+               p(strong("Project lead(s): "), "Max Mustermann, Mike Musterfrau"),
+               p(strong("Additional info: "), "This is a demo project. Most of the controls don't work and all the values are hard-coded."),
+               p(strong("Expedition date: "), "2019-08-01"),
+               actionButton("change_project_info", "Update the project information")
+             ),
+             wellPanel(
+               h3("Project data"),
+               p(strong("raw measurement data:"), br(), "Dataset A (dataset_a.csv, created: 2019-08-01)", br(), "Dataset B (dataset_b.csv, created: 2019-08-02)"),
+               p(strong("processed measurement data:"), br(), "processed dataset A (processed_dataset_a.csv, processed: 2019-08-05)", br(), 
+                        "processed dataset B (processed_dataset_b.csv, processed: 2019-08-02)"),
+               actionButton("download_proj_file", "Download one dataset (as csv)"),
+               actionButton("download_proj_data", "Download all project data (as zip archive)")
+             ),
+             wellPanel(
+               h3("What do you want to do next?"),
+               actionButton("go_assembly", "Generate an assembly protocol", style = blue),
+               actionButton("go_upload", "Upload measurement data", style = blue),
+               actionButton("go_process", "Process measurement data", style = blue)
+             )
     ),
     
     tabPanel("Generate an assembly protocol",
