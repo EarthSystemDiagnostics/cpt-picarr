@@ -1,2 +1,2 @@
 library(rsconnect)
-rsconnect::deployApp('./R', appTitle = "cpt. picarr")
+rsconnect::deployApp('.', appTitle = "cpt. picarr")
