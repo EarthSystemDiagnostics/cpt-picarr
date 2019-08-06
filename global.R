@@ -6,12 +6,12 @@ df_assembly_prot_template <- data.frame(
   id_2 = LETTERS[1:20],
   num_injections = as.integer(3),
   is_standard = FALSE,
-  standard_oxy_17 = "",
   standard_oxy_18 = "",
   standard_dtr = "",
+  standard_oxy_17 = "",
   stringsAsFactors = FALSE
 )
-colnames(df_assembly_prot_template) <- c("Identifier 1", "Identifier 2", "Number of injections", "Is standard?", "True oxy-17 (only for standards)", "True oxy-18 (only for standards)", "True dtr (only for standards)")
+colnames(df_assembly_prot_template) <- c("Identifier 1", "Identifier 2", "Number of injections", "Is standard?", "True d18O (only for standards)", "True d2H (only for standards)", "True d17O (only for standards, optional)")
 
 
 df_processing_template <- data.frame(

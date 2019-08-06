@@ -56,13 +56,15 @@ ui <- navbarPage(
     ),
     
     tabPanel("Generate an assembly protocol",
+             h3("Generate an assembly protocol"), 
+             p(em("Selected project: Project A")), br(),
              wellPanel(
                h3("Select a template to use"),
                selectInput("template_for_bst_prot", "", c("Template A", "Template B")),
                actionButton("load_template", "Load selected template")
              ),
              rHandsontableOutput("ho_table_assembly_prot"), br(),
-             actionButton("add_row", "+ Add a row"), p(""), br(),
+             actionButton("add_row", "+ Add a row"), "(Right click table for more options)", p(""), br(),
              wellPanel(
                h3("All done?"),
                actionButton("new_template", "Save as new template"),
@@ -72,14 +74,16 @@ ui <- navbarPage(
     ),
              
     tabPanel("Upload measurement data",
-             h3("Upload a file with isotope measurement data"), br(),
+             h3("Upload a file with isotope measurement data"),
+             p(em("Selected project: Project A")), br(),
              wellPanel(
                  fileInput("input_file", "Select a file to upload"),
                  textInput("dataset_name", "Name the dataset"),
+                 textInput("device_name", "What device was this data measured with?"),
                  dateInput("measurement_date", "When was this data measured?"),
                  textAreaInput("file_addtional_info", "Information about the dataset (optional)"),
-                 selectInput("template_for_file_upload", "Select a assembly protocol template to associate with the dataset", c("Template A", "Template B")),
-                 selectInput("processing_template", "Select a template for the post-processing of this dataset", c("Template 1", "Template 2", "+ create new template")),
+                 selectInput("template_for_file_upload", "Select an assembly protocol to associate with the dataset", c("", "Protocol A", "Protocol B")),
+                 selectInput("processing_template", "Select a template for the post-processing of this dataset", c("", "Template 1", "Template 2", "Empty Template")),
                  rHandsontableOutput("ho_table_processing"), br(),
                  actionButton("save_processing_template", "Save as new processing template")
                ),
@@ -89,7 +93,8 @@ ui <- navbarPage(
     ),
     
     tabPanel("Process measurement data",
-             h3("Post-process isotope measurement data"), br(),
+             h3("Post-process isotope measurement data"),
+             p(em("Selected project: Project A")), br(),
              wellPanel(
                h4("Setup and Options"), br(),
                selectInput("data_to_process", "Select one or more datasets to process", c("Dataset A", "Dataset B", "Dataset C"), multiple = TRUE),
@@ -146,7 +151,12 @@ ui <- navbarPage(
 
 server <- function(input, output, session){
   
-  observe({if (input$page == "Home") hide_all_tabs()})
+  observe({
+    if (input$page == "Home") {
+      hide_all_tabs()
+      print("\nregistered 'Home'\n")
+    }
+  })
   
   observeEvent(input$go_to_cross_project_statistics, {go_to_tab("Instrument performance", session)})
   
