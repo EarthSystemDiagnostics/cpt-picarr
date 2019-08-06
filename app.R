@@ -66,7 +66,8 @@ ui <- navbarPage(
                h3("All done?"),
                actionButton("new_template", "Save as new template"),
                actionButton("download_assembly_protocol", "Download assembly protocol", style = blue)
-             )
+             ),
+             actionButton("back_to_proj_1", "Go back to the project page")
     ),
              
     tabPanel("Upload measurement data",
@@ -81,7 +82,9 @@ ui <- navbarPage(
                  rHandsontableOutput("ho_table_processing"), br(),
                  actionButton("save_processing_template", "Save as new processing template")
                ),
-             actionButton("upload_file", "Upload the dataset", style = blue)
+             actionButton("upload_file", "Upload the dataset", style = blue),
+             p(""), br(),
+             actionButton("back_to_proj_2", "Go back to the project page")
     ),
     
     tabPanel("Process measurement data",
@@ -118,11 +121,12 @@ ui <- navbarPage(
                           p("This section contains plots comparing the data quality of different datasets."),
                           selectInput("datasets_for_plotting_summary", "Select the datasets for plotting", c("Dataset A", "Dataset B", "Dataset C"), 
                                       multiple = TRUE, selected = c("Dataset A", "Dataset B", "Dataset C")),
-                          plotOutput("plot_summary"),
-                          p("TODO: What other plots would you like to have?")
-                 )
+                          plotOutput("plot_summary")
+                 ),
+                 h4("[What other plots would you like to see here?]")
                )
-             )
+             ),
+             actionButton("back_to_proj_3", "Go back to the project page")
     ),
     
     tabPanel("Instrument performance",
@@ -143,8 +147,12 @@ server <- function(input, output, session){
   observe({if (input$page == "Home") hide_all_tabs()})
   
   observeEvent(input$go_to_cross_project_statistics, {go_to_tab("Instrument performance", session)})
+  
   observeEvent(input$load_project, {go_to_tab("Project", session)})
   observeEvent(input$create_project, {go_to_tab("Project", session)})
+  observeEvent(input$back_to_proj_1, {go_to_tab("Project", session)})
+  observeEvent(input$back_to_proj_2, {go_to_tab("Project", session)})
+  observeEvent(input$back_to_proj_3, {go_to_tab("Project", session)})
   
   observeEvent(input$go_assembly, {go_to_tab("Generate an assembly protocol", session)})
   observeEvent(input$go_upload, {go_to_tab("Upload measurement data", session)})
