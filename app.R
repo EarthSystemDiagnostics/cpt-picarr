@@ -3,9 +3,8 @@ library(rhandsontable)
 
 source("global.R")
 
-ui <- fluidPage(
-  navlistPanel(
-    "Welcome to Cpt. Picarr!",
+ui <- navbarPage(
+    "Welcome to Cpt. Picarr!", id = "page",
     
     tabPanel("Home",
              h3("Welcome to Cpt. Picarr!"), 
@@ -30,7 +29,15 @@ ui <- fluidPage(
              )
     ),
     
-    tabPanel("Generate a assemply protocol",
+    tabPanel("Project",
+             h3("Project page"),
+             p("TODO: display project metadata (name, project lead, ..)"), br(),
+             actionButton("go_assembly", "Generate an assembly protocol"),
+             actionButton("go_upload", "Upload measurement data"),
+             actionButton("go_process", "Process measurement data")
+    ),
+    
+    tabPanel("Generate an assembly protocol",
              wellPanel(
                h3("Select a template to use"),
                selectInput("template_for_bst_prot", "", c("Template A", "Template B")),
@@ -111,10 +118,20 @@ ui <- fluidPage(
              plotOutput("instrument_error"),
              h4("[What other plots would you like to see here?]")
     )
-  )
 )
 
-server <- function(input, output){
+server <- function(input, output, session){
+  
+  observe({if (input$page == "Home") hide_all_tabs()})
+  
+  observeEvent(input$go_to_cross_project_statistics, {go_to_tab("Instrument performance", session)})
+  observeEvent(input$load_project, {go_to_tab("Project", session)})
+  observeEvent(input$create_project, {go_to_tab("Project", session)})
+  
+  observeEvent(input$go_assembly, {go_to_tab("Generate an assembly protocol", session)})
+  observeEvent(input$go_upload, {go_to_tab("Upload measurement data", session)})
+  observeEvent(input$go_process, {go_to_tab("Process measurement data", session)})
+  
   output$ho_table_assembly_prot <- renderRHandsontable(rhandsontable(df_assembly_prot_template))
   output$ho_table_processing <- renderRHandsontable(rhandsontable(df_processing_template))
   
@@ -132,7 +149,6 @@ server <- function(input, output){
     grid()
   })
 
-  
   output$plot_probes <- renderPlot({
     plot(df$probe, df$d180_measured, type = "p", col = "blue", xlab = "probe", ylab = "d180")
     points(df$probe, df$d180_memory_corrected, col = "red")
@@ -157,6 +173,19 @@ server <- function(input, output){
     axis(1, at = 1:4, labels = c("1.8.19", "2.8.19", "3.8.19", "4.8.19"))
     grid()
   })
+}
+
+hide_all_tabs <- function(){
+  hideTab("page", target = "Project")
+  hideTab("page", target = "Generate an assembly protocol")
+  hideTab("page", target = "Upload measurement data")
+  hideTab("page", target = "Process measurement data")
+  hideTab("page", target = "Instrument performance")
+}
+go_to_tab <- function(target, session) {
+  hide_all_tabs()
+  showTab("page", target = target)
+  updateTabsetPanel(session, "page", selected = target)
 }
 
 shinyApp(ui, server)
