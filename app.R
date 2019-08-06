@@ -151,12 +151,7 @@ ui <- navbarPage(
 
 server <- function(input, output, session){
   
-  observe({
-    if (input$page == "Home") {
-      hide_all_tabs()
-      print("\nregistered 'Home'\n")
-    }
-  })
+  hide_all_tabs()
   
   observeEvent(input$go_to_cross_project_statistics, {go_to_tab("Instrument performance", session)})
   
