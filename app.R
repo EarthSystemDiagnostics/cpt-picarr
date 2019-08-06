@@ -44,7 +44,7 @@ ui <- navbarPage(
                p(strong("raw measurement data:"), br(), "Dataset A (dataset_a.csv, created: 2019-08-01)", br(), "Dataset B (dataset_b.csv, created: 2019-08-02)"),
                p(strong("processed measurement data:"), br(), "processed dataset A (processed_dataset_a.csv, processed: 2019-08-05)", br(), 
                         "processed dataset B (processed_dataset_b.csv, processed: 2019-08-02)"),
-               actionButton("download_proj_file", "Download one dataset (as csv)"),
+               actionButton("download_proj_file", "Download one or multiple datasets (as csv)"),
                actionButton("download_proj_data", "Download all project data (as zip archive)")
              ),
              wellPanel(
@@ -62,6 +62,7 @@ ui <- navbarPage(
                actionButton("load_template", "Load selected template")
              ),
              rHandsontableOutput("ho_table_assembly_prot"), br(),
+             actionButton("add_row", "+ Add a row"), p(""), br(),
              wellPanel(
                h3("All done?"),
                actionButton("new_template", "Save as new template"),
@@ -92,6 +93,7 @@ ui <- navbarPage(
              wellPanel(
                h4("Setup and Options"), br(),
                selectInput("data_to_process", "Select one or more datasets to process", c("Dataset A", "Dataset B", "Dataset C"), multiple = TRUE),
+               dateRangeInput("data_to_process_range", "Process all the data in this timespan (overrides the selection above):"),
                radioButtons("use_memory_correction", "Use memory correction?", c("Yes", "No")),
                radioButtons("drift_and_calibration", "Drift correction and calibration options", c("Use drift correction and three-point calibration", 
                                                                                                    "Use Double three-point calibration", 
