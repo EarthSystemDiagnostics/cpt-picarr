@@ -1,4 +1,9 @@
+Package: cpt-picarr
+Depends: R (>= 3.4.4)
+License: MIT
 Imports:
-    shiny
+    shiny,
     rhandsontable
-    testthat
+Suggests:
+    testthat,
+    shinytest
