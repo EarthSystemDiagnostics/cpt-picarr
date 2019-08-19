@@ -15,7 +15,7 @@ ui <- navbarPage(
                column(4,
                  wellPanel(
                    h3("Load an existing project"),
-                   p("Load data associated with a project. Next you can generate an assembly protocol, 
+                   p("See information and data for an existing project. Next you can generate an assembly protocol, 
                       upload measurement data, or process measurement data."),
                    selectInput("project_to_load", "Choose a project", c("Project A", "Project B", "Project C")),
                    actionButton("load_project", "Load selected project", style = blue)
