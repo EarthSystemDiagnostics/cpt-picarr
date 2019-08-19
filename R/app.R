@@ -13,6 +13,12 @@ ui <- navbarPage(
              p("Start by loading an existing project or creating a new one. You can also look at cross-project 
                statistics to analyze the performance of your measurement instruments over time."), br(),
              wellPanel(
+               h3("Quick evaluation"),
+               p("Upload a single file with measurement data and process it. After processing the file 
+               Cpt. Picarr will generat plots to help you evaluate the data."),
+               actionButton("go_to_quick_eval", "Go to quick evaluation", style = blue)
+             ),
+             wellPanel(
                h3("Load an existing project"),
                selectInput("project_to_load", "Choose a project", c("Project A", "Project B", "Project C")),
                actionButton("load_project", "Load selected project", style = blue)
@@ -28,6 +34,53 @@ ui <- navbarPage(
              wellPanel(
                h3("Take a look at cross-project statistics"),
                actionButton("go_to_cross_project_statistics", "Go to page 'Instrument performance'", style = blue)
+             )
+    ),
+    
+    tabPanel("Quick evaluation",
+             h3("Quick evaluation"),
+             wellPanel(
+               h4("Upload a file with isotope measurement data"),
+               fileInput("input_file_x", "Upload a file"),
+               selectInput("template_for_file_upload_x", "Select an assembly protocol to associate with the dataset", 
+                           c("", "Protocol A", "Protocol B")),
+               actionButton("quick_eval_save_to_proj", "Add the file to a project (optional)")
+             ),
+             wellPanel(
+               h4("Processing: Setup and Options"), br(),
+               radioButtons("use_memory_correction", "Use memory correction?", c("Yes", "No")),
+               radioButtons("calibration_type", "Use three-point calibration or two-point calibration?", c("Use three-point calibration",
+                                                                                                           "Use two-point calibration")),
+               radioButtons("drift_and_calibration", "Drift correction and calibration options", c("Use linear drift correction and calibration", 
+                                                                                                   "Use double calibration",
+                                                                                                   "Use only calibration, without drift correction")),
+               h4("All set up?"), br(),
+               actionButton("do_process", "Process the data", style = blue),
+               actionButton("do_download", "Download the processed data"),
+               actionButton("do_save", "Save the processed data on the server")
+             ),
+             wellPanel(
+               h4("Plots"), br(),
+               tabsetPanel(
+                 tabPanel("Dataset-level plots", br(),
+                          p("This section contains plots concerning memory and drift correction, and the calibration for the uploaded individual dataset."),
+                          h4("Memory coefficients"),
+                          plotOutput("plot_memory_correction_qe"),
+                          h4("Drift"),
+                          plotOutput("plot_drift_correction_qe"),
+                          h4("Calibration"),
+                          plotOutput("plot_calibration_qe"),
+                          h4("Raw vs. processed"),
+                          plotOutput("plot_raw_vs_processed_qe"),
+                          h4("Deviation from true value for standards"),
+                          tableOutput("table_deviation_qe")
+                 ),
+                 tabPanel("Probe-level plots", br(),
+                          p("This section contains plots with regards to the measured values for individual probes in the uploaded dataset."),
+                          plotOutput("plot_stddev_qe"),
+                          plotOutput("plot_probes_qe")
+                 )
+               )
              )
     ),
     
@@ -87,8 +140,6 @@ ui <- navbarPage(
              wellPanel(
                  fileInput("input_file", "Select a file to upload"),
                  textInput("dataset_name", "Name the dataset"),
-                 textInput("device_name", "What device was this data measured with?"),
-                 dateInput("measurement_date", "When was this data measured?"),
                  textAreaInput("file_addtional_info", "Information about the dataset (optional)"),
                  selectInput("template_for_file_upload", "Select an assembly protocol to associate with the dataset", c("", "Protocol A", "Protocol B"))
                ),
@@ -168,6 +219,8 @@ server <- function(input, output, session){
   
   observeEvent(input$go_to_cross_project_statistics, {go_to_tab("Instrument performance", session)})
   
+  observeEvent(input$go_to_quick_eval, {go_to_tab("Quick evaluation", session)})
+  
   observeEvent(input$load_project, {go_to_tab("Project", session)})
   observeEvent(input$create_project, {go_to_tab("Project", session)})
   observeEvent(input$back_to_proj_1, {go_to_tab("Project", session)})
@@ -192,7 +245,7 @@ server <- function(input, output, session){
   raw_vs_processed <- read_csv("www/raw_vs_processed.csv")
   dev <- read_csv("www/sollwert_abweichung.csv")
   
-  output$plot_memory_correction <- renderPlot({
+  mem_corr_plot <- renderPlot({
     ggplot(mem, mapping = aes(x = InjNr, y = MemCoeff, color = Standard)) + 
       geom_point() + 
       geom_line() + 
@@ -200,7 +253,10 @@ server <- function(input, output, session){
       facet_grid(cols = vars(d)) + 
       scale_x_continuous(breaks = unique(mem$InjNr))
   })
-  output$plot_drift_correction <- renderPlot({
+  output$plot_memory_correction <- mem_corr_plot
+  output$plot_memory_correction_qe <- mem_corr_plot
+  
+  drift_corr_plot <- renderPlot({
     ggplot(drift, mapping = aes(x = Block, y = Deviation, color = Standard)) + 
       geom_point() + 
       geom_line() + 
@@ -208,14 +264,20 @@ server <- function(input, output, session){
       facet_grid(cols = vars(d)) + 
       scale_x_continuous(breaks = unique(drift$Block))
   })
-  output$plot_calibration <- renderPlot({
+  output$plot_drift_correction <- drift_corr_plot
+  output$plot_drift_correction_qe <- drift_corr_plot
+  
+   calibration_plot <- renderPlot({
     ggplot(calibration, mapping = aes(x = True, y = Measured, color = Standard)) + 
       geom_point() + 
       geom_abline() + 
       facet_grid(cols = vars(d)) + 
       labs(x = "True value for standard", y = "Measured value")
   })
-  output$plot_raw_vs_processed <- renderPlot({
+  output$plot_calibration <- calibration_plot
+  output$plot_calibration_qe <- calibration_plot
+  
+  raw_v_proc_plot <- renderPlot({
     ggplot(raw_vs_processed, mapping = aes(x = `Identifier 1`, y = value, color = state)) + 
       geom_point() + 
       facet_grid(cols = vars(d)) + 
@@ -223,12 +285,17 @@ server <- function(input, output, session){
       xlab("sample Identifer 1") + 
       coord_flip()
   })
-  output$table_deviation <- renderTable({
+  output$plot_raw_vs_processed <- raw_v_proc_plot
+  output$plot_raw_vs_processed_qe <- raw_v_proc_plot
+  
+  dev_table <- renderTable({
     dev
   })
+  output$table_deviation <- dev_table
+  output$table_deviation_qe <- dev_table
   
   
-  output$plot_probes <- renderPlot({
+  probes_plot <- renderPlot({
     plot(df$probe, df$d180_measured, type = "p", col = "blue", xlab = "probe", ylab = "d180")
     points(df$probe, df$d180_memory_corrected, col = "red")
     points(df$probe, df$d180_drift_corrected, col = "black")
@@ -236,10 +303,15 @@ server <- function(input, output, session){
     legend("topleft", c("measured value", "memory corrected", "drift corrected", "calibrated"), fill = c("blue", "red", "black", "purple"))
     grid()
   })
-  output$plot_stddev <- renderPlot({
+  output$plot_probes <- probes_plot
+  output$plot_probes_qe <- probes_plot
+  
+  stddev_plot <- renderPlot({
     plot(1:5, c(0.001, 0.0015, 0.0009, 0.003, 0.00005), xlab = "probe", ylab = "std deviation", main = "standard deviation of each probe", col = "blue")
     grid()
   })
+  output$plot_stddev <- stddev_plot
+  output$plot_stddev_qe <- stddev_plot
   
   output$plot_summary <- renderPlot({
     plot(c(1, 2, 3), c(0.02, 0.015, 0.3), main = "Error of the control standard", ylab = "Error of the control standard", xlab = "dataset", xaxt = "n", col = "blue")
@@ -260,6 +332,7 @@ hide_all_tabs <- function(){
   hideTab("page", target = "Upload measurement data")
   hideTab("page", target = "Process measurement data")
   hideTab("page", target = "Instrument performance")
+  hideTab("page", target = "Quick evaluation")
 }
 go_to_tab <- function(target, session) {
   hide_all_tabs()
