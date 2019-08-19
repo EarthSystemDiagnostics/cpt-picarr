@@ -9,31 +9,48 @@ ui <- navbarPage(
     "Cpt. Picarr", id = "page",
     
     tabPanel("Home",
-             h3("Welcome to Cpt. Picarr!"), 
-             p("Start by loading an existing project or creating a new one. You can also look at cross-project 
-               statistics to analyze the performance of your measurement instruments over time."), br(),
-             wellPanel(
-               h3("Quick evaluation"),
-               p("Upload a single file with measurement data and process it. After processing the file 
-               Cpt. Picarr will generat plots to help you evaluate the data."),
-               actionButton("go_to_quick_eval", "Go to quick evaluation", style = blue)
-             ),
-             wellPanel(
-               h3("Load an existing project"),
-               selectInput("project_to_load", "Choose a project", c("Project A", "Project B", "Project C")),
-               actionButton("load_project", "Load selected project", style = blue)
-             ),
-             wellPanel(
-               h3("Create a new project"),
-               textInput("proj_name", "Project name"),
-               textInput("proj_lead", "Project lead(s) (optional)"),
-               textAreaInput("proj_additional_info", "Additional info (optional)"),
-               dateInput("proj_date", "Expedition date (optional)"),
-               actionButton("create_project", "Create new project", style = blue)
-             ),
-             wellPanel(
-               h3("Take a look at cross-project statistics"),
-               actionButton("go_to_cross_project_statistics", "Go to page 'Instrument performance'", style = blue)
+             h2("Welcome to Cpt. Picarr!"),
+             h4("What do you want to do today?"),
+             fluidRow(
+               column(4,
+                 wellPanel(
+                   h3("Load an existing project"),
+                   p("Load data associated with a project. Next you can generate an assembly protocol, 
+                      upload measurement data, or process measurement data."),
+                   selectInput("project_to_load", "Choose a project", c("Project A", "Project B", "Project C")),
+                   actionButton("load_project", "Load selected project", style = blue)
+                 ),
+                 wellPanel(
+                 h3("Quick evaluation"),
+                 p("Upload a single file with measurement data and process it. After processing the file 
+                   Cpt. Picarr will generat plots to help you evaluate the data."),
+                 actionButton("go_to_quick_eval", "Go to quick evaluation", style = blue)
+                 )
+               ),
+               column(4,
+                 wellPanel(
+                   h3("Create a new project"),
+                   p("Create a new projecte to manage related data."),
+                   textInput("proj_name", "Project name"),
+                   textInput("proj_lead", "Project lead(s) (optional)"),
+                   textAreaInput("proj_additional_info", "Additional info (optional)"),
+                   dateInput("proj_date", "Expedition date (optional)"),
+                   actionButton("create_project", "Create new project", style = blue)
+                 )
+               ),
+               column(4,
+                 wellPanel(
+                   h3("Instrument performance"),
+                   p("Look at cross-project statistics to analyze the performance of your measurement instruments over time."),
+                   actionButton("go_to_cross_project_statistics", "Go to page 'Instrument performance'", style = blue)
+                 ),
+                 wellPanel(
+                   h3("Manage devices"),
+                   p("List known isotope measurement devices or add a new device."),
+                   actionButton("add_device", "Add a new device"), p(""),
+                   actionButton("go_to_manage_devices", "Take a look at known devices", style = blue)
+                 )
+               )
              )
     ),
     
