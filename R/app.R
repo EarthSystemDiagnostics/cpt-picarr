@@ -117,7 +117,8 @@ ui <- navbarPage(
                           selectInput("dataset_for_plotting_at_dataset_level", "Select a dataset for plotting", c("Dataset A", "Dataset B", "Dataset C")),
                           plotOutput("plot_memory_correction"),
                           plotOutput("plot_drift_correction"),
-                          plotOutput("plot_calibration")
+                          plotOutput("plot_calibration"),
+                          plotOutput("plot_raw_vs_processed")
                  ),
                  tabPanel("Probe-level plots", br(),
                           p("This section contains plots with regards to the measured values for individual probes in a specific dataset."),
@@ -172,10 +173,10 @@ server <- function(input, output, session){
   # ------- PLOTS -----------
   #
   
-  data <- read_csv("../tests/test_data/calibrated.csv")
   mem <- read_csv("www/memory_correction.csv")
   drift <- read_csv("www/drift_correction.csv")
   calibration <- read_csv("www/calibration.csv")
+  raw_vs_processed <- read_csv("www/raw_vs_processed.csv")
   
   output$plot_memory_correction <- renderPlot({
     ggplot(mem, mapping = aes(x = InjNr, y = MemCoeff, color = Standard)) + 
@@ -200,7 +201,17 @@ server <- function(input, output, session){
       facet_grid(cols = vars(d)) + 
       labs(x = "True value for standard", y = "Measured value", title = "Calibration")
   })
-
+  output$plot_raw_vs_processed <- renderPlot({
+    ggplot(rvp, mapping = aes(x = `Identifier 1`, y = value, color = state)) + 
+      geom_point() + 
+      facet_grid(cols = vars(d)) + 
+      facet_wrap(vars(d), scales = "free_x") + 
+      ggtitle("Raw vs. Processed") + 
+      xlab("sample Identifer 1") + 
+      coord_flip()
+  })
+  
+  
   output$plot_probes <- renderPlot({
     plot(df$probe, df$d180_measured, type = "p", col = "blue", xlab = "probe", ylab = "d180")
     points(df$probe, df$d180_memory_corrected, col = "red")
