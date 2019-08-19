@@ -115,10 +115,16 @@ ui <- navbarPage(
                  tabPanel("Dataset-level plots", br(),
                           p("This section contains plots concerning memory and drift correction, and the calibration for an individual dataset."),
                           selectInput("dataset_for_plotting_at_dataset_level", "Select a dataset for plotting", c("Dataset A", "Dataset B", "Dataset C")),
+                          h4("Memory coefficients"),
                           plotOutput("plot_memory_correction"),
+                          h4("Drift"),
                           plotOutput("plot_drift_correction"),
+                          h4("Calibration"),
                           plotOutput("plot_calibration"),
-                          plotOutput("plot_raw_vs_processed")
+                          h4("Raw vs. processed"),
+                          plotOutput("plot_raw_vs_processed"),
+                          h4("Deviation from true value for standards"),
+                          tableOutput("table_deviation")
                  ),
                  tabPanel("Probe-level plots", br(),
                           p("This section contains plots with regards to the measured values for individual probes in a specific dataset."),
@@ -177,12 +183,13 @@ server <- function(input, output, session){
   drift <- read_csv("www/drift_correction.csv")
   calibration <- read_csv("www/calibration.csv")
   raw_vs_processed <- read_csv("www/raw_vs_processed.csv")
+  dev <- read_csv("www/sollwert_abweichung.csv")
   
   output$plot_memory_correction <- renderPlot({
     ggplot(mem, mapping = aes(x = InjNr, y = MemCoeff, color = Standard)) + 
       geom_point() + 
       geom_line() + 
-      labs(x = "Injection Nr.", y = "memory coefficient", title = "Memory coefficients") + 
+      labs(x = "Injection Nr.", y = "memory coefficient") + 
       facet_grid(cols = vars(d)) + 
       scale_x_continuous(breaks = unique(mem$InjNr))
   })
@@ -190,7 +197,7 @@ server <- function(input, output, session){
     ggplot(drift, mapping = aes(x = Block, y = Deviation, color = Standard)) + 
       geom_point() + 
       geom_line() + 
-      labs(x = "Block Nr.", y = "Deviation from initial measurement", title = "Drift") + 
+      labs(x = "Block Nr.", y = "Deviation from initial measurement") + 
       facet_grid(cols = vars(d)) + 
       scale_x_continuous(breaks = unique(drift$Block))
   })
@@ -199,16 +206,18 @@ server <- function(input, output, session){
       geom_point() + 
       geom_abline() + 
       facet_grid(cols = vars(d)) + 
-      labs(x = "True value for standard", y = "Measured value", title = "Calibration")
+      labs(x = "True value for standard", y = "Measured value")
   })
   output$plot_raw_vs_processed <- renderPlot({
     ggplot(rvp, mapping = aes(x = `Identifier 1`, y = value, color = state)) + 
       geom_point() + 
       facet_grid(cols = vars(d)) + 
       facet_wrap(vars(d), scales = "free_x") + 
-      ggtitle("Raw vs. Processed") + 
       xlab("sample Identifer 1") + 
       coord_flip()
+  })
+  output$table_deviation <- renderTable({
+    dev
   })
   
   
