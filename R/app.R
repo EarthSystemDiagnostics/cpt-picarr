@@ -1,5 +1,6 @@
 library(shiny)
 library(rhandsontable)
+library(ggplot2)
 
 source("global.R")
 
@@ -129,8 +130,7 @@ ui <- navbarPage(
                           selectInput("datasets_for_plotting_summary", "Select the datasets for plotting", c("Dataset A", "Dataset B", "Dataset C"), 
                                       multiple = TRUE, selected = c("Dataset A", "Dataset B", "Dataset C")),
                           plotOutput("plot_summary")
-                 ),
-                 h4("[What other plots would you like to see here?]")
+                 )
                )
              ),
              actionButton("back_to_proj_3", "Go back to the project page")
@@ -144,8 +144,7 @@ ui <- navbarPage(
                dateRangeInput("timespan", "Select a timespan to look at"),
                actionButton("show_instrument_stats", "Show me stats for the selected device and timespan", style = blue)
              ),
-             plotOutput("instrument_error"),
-             h4("[What other plots would you like to see here?]")
+             plotOutput("instrument_error")
     )
 )
 
@@ -168,18 +167,38 @@ server <- function(input, output, session){
   output$ho_table_assembly_prot <- renderRHandsontable(rhandsontable(df_assembly_prot_template))
   output$ho_table_processing <- renderRHandsontable(rhandsontable(df_processing_template))
   
+  
+  # 
+  # ------- PLOTS -----------
+  #
+  
+  data <- read_csv("../tests/test_data/calibrated.csv")
+  mem <- read_csv("www/memory_correction.csv")
+  drift <- read_csv("www/drift_correction.csv")
+  calibration <- read_csv("www/calibration.csv")
+  
   output$plot_memory_correction <- renderPlot({
-    plot(read.csv("www/memory_correction.csv", header = FALSE), main = "memory correction", ylab = "memory coefficient", xlab = "number of injections", type = "b", col = "blue")
-    grid()
+    ggplot(mem, mapping = aes(x = InjNr, y = MemCoeff, color = Standard)) + 
+      geom_point() + 
+      geom_line() + 
+      labs(x = "Injection Nr.", y = "memory coefficient", title = "Memory coefficients") + 
+      facet_grid(cols = vars(d)) + 
+      scale_x_continuous(breaks = unique(mem$InjNr))
   })
   output$plot_drift_correction <- renderPlot({
-    plot(read.csv("www/drift_correction.csv", header = FALSE), main = "drift correction", ylab = "deviation from initial measurement", xlab = "standard block", type = "b", col = "blue")
-    grid()
+    ggplot(drift, mapping = aes(x = Block, y = Deviation, color = Standard)) + 
+      geom_point() + 
+      geom_line() + 
+      labs(x = "Block Nr.", y = "Deviation from initial measurement", title = "Drift") + 
+      facet_grid(cols = vars(d)) + 
+      scale_x_continuous(breaks = unique(drift$Block))
   })
   output$plot_calibration <- renderPlot({
-    plot(c(12.8, 14, 7, 15.4, 13.1), c(12.8, 16, 6.9, 15.4, 13.0), main = "calibration", xlab = "True value of standard", ylab = "Measured value of standard", col = "blue", type = "p")
-    lines(c(1, 100), c(1, 100), col = "grey")
-    grid()
+    ggplot(calibration, mapping = aes(x = True, y = Measured, color = Standard)) + 
+      geom_point() + 
+      geom_abline() + 
+      facet_grid(cols = vars(d)) + 
+      labs(x = "True value for standard", y = "Measured value", title = "Calibration")
   })
 
   output$plot_probes <- renderPlot({
