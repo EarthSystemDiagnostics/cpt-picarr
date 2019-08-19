@@ -61,15 +61,21 @@ ui <- navbarPage(
              h3("Generate an assembly protocol"), 
              p(em("Selected project: Project A")), br(),
              wellPanel(
-               h3("Select a template to use"),
+               h4("Select an assembly protocol template to use"),
                selectInput("template_for_bst_prot", "", c("Template A", "Template B")),
-               actionButton("load_template", "Load selected template")
+               actionButton("load_template", "Load selected template"), p(""), br(),
+               rHandsontableOutput("ho_table_assembly_prot"), br(),
+               actionButton("add_row", "+ Add a row"), "(Right click table for more options)", p(""), 
+               actionButton("new_assp_template", "Save as new template")
              ),
-             rHandsontableOutput("ho_table_assembly_prot"), br(),
-             actionButton("add_row", "+ Add a row"), "(Right click table for more options)", p(""), br(),
              wellPanel(
-               h3("All done?"),
-               actionButton("new_template", "Save as new template"),
+               h4("Select a template for the processing of data measured with this assembly protocol"),
+               selectInput("processing_template", "", c("Processing Template 1", "Processing Template 2", "Empty Template")),
+               rHandsontableOutput("ho_table_processing"), br(),
+               actionButton("save_processing_template", "Save as new processing template")
+             ),
+             wellPanel(
+               h4("All done?"),
                actionButton("download_assembly_protocol", "Download assembly protocol", style = blue)
              ),
              actionButton("back_to_proj_1", "Go back to the project page")
@@ -84,10 +90,7 @@ ui <- navbarPage(
                  textInput("device_name", "What device was this data measured with?"),
                  dateInput("measurement_date", "When was this data measured?"),
                  textAreaInput("file_addtional_info", "Information about the dataset (optional)"),
-                 selectInput("template_for_file_upload", "Select an assembly protocol to associate with the dataset", c("", "Protocol A", "Protocol B")),
-                 selectInput("processing_template", "Select a template for the post-processing of this dataset", c("", "Template 1", "Template 2", "Empty Template")),
-                 rHandsontableOutput("ho_table_processing"), br(),
-                 actionButton("save_processing_template", "Save as new processing template")
+                 selectInput("template_for_file_upload", "Select an assembly protocol to associate with the dataset", c("", "Protocol A", "Protocol B"))
                ),
              actionButton("upload_file", "Upload the dataset", style = blue),
              p(""), br(),
@@ -101,6 +104,7 @@ ui <- navbarPage(
                h4("Setup and Options"), br(),
                selectInput("data_to_process", "Select one or more datasets to process", c("Dataset A", "Dataset B", "Dataset C"), multiple = TRUE),
                dateRangeInput("data_to_process_range", "Process all the data in this timespan (overrides the selection above):"),
+               actionButton("change_processing_template", "Update the processing template for one of the datasets"), p(""), br(),
                radioButtons("use_memory_correction", "Use memory correction?", c("Yes", "No")),
                radioButtons("calibration_type", "Use three-point calibration or two-point calibration?", c("Use three-point calibration",
                                                                                                             "Use two-point calibration")),
