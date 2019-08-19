@@ -1,6 +1,7 @@
 library(shiny)
 library(rhandsontable)
 library(ggplot2)
+library(readr)
 
 source("global.R")
 
@@ -101,9 +102,11 @@ ui <- navbarPage(
                selectInput("data_to_process", "Select one or more datasets to process", c("Dataset A", "Dataset B", "Dataset C"), multiple = TRUE),
                dateRangeInput("data_to_process_range", "Process all the data in this timespan (overrides the selection above):"),
                radioButtons("use_memory_correction", "Use memory correction?", c("Yes", "No")),
-               radioButtons("drift_and_calibration", "Drift correction and calibration options", c("Use drift correction and three-point calibration", 
-                                                                                                   "Use Double three-point calibration", 
-                                                                                                   "[Please let me know what options you would like to have]")), br(),
+               radioButtons("calibration_type", "Use three-point calibration or two-point calibration?", c("Use three-point calibration",
+                                                                                                            "Use two-point calibration")),
+               radioButtons("drift_and_calibration", "Drift correction and calibration options", c("Use linear drift correction and calibration", 
+                                                                                                   "Use double calibration",
+                                                                                                   "Use only calibration, without drift correction")),
                h4("All set up?"), br(),
                actionButton("do_process", "Process the data", style = blue),
                actionButton("do_download", "Download the processed data"),
@@ -209,7 +212,7 @@ server <- function(input, output, session){
       labs(x = "True value for standard", y = "Measured value")
   })
   output$plot_raw_vs_processed <- renderPlot({
-    ggplot(rvp, mapping = aes(x = `Identifier 1`, y = value, color = state)) + 
+    ggplot(raw_vs_processed, mapping = aes(x = `Identifier 1`, y = value, color = state)) + 
       geom_point() + 
       facet_grid(cols = vars(d)) + 
       facet_wrap(vars(d), scales = "free_x") + 
