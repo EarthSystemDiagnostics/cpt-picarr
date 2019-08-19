@@ -47,15 +47,14 @@ ui <- navbarPage(
                  wellPanel(
                    h3("Manage devices"),
                    p("List known isotope measurement devices or add a new device."),
-                   actionButton("add_device", "Add a new device"), p(""),
-                   actionButton("go_to_manage_devices", "Take a look at known devices", style = blue)
+                   actionButton("go_to_manage_devices", "Manage devices", style = blue)
                  )
                )
              )
     ),
     
     tabPanel("Quick evaluation",
-             h3("Quick evaluation"),
+             h2("Quick evaluation"),
              wellPanel(
                h4("Upload a file with isotope measurement data"),
                fileInput("input_file_x", "Upload a file"),
@@ -102,7 +101,7 @@ ui <- navbarPage(
     ),
     
     tabPanel("Project",
-             h3("Project A"),
+             h2("Project A"),
              wellPanel(
                h3("Project information"),
                p(strong("Project name: "), "Project A"),
@@ -128,7 +127,7 @@ ui <- navbarPage(
     ),
     
     tabPanel("Generate an assembly protocol",
-             h3("Generate an assembly protocol"), 
+             h2("Generate an assembly protocol"), 
              p(em("Selected project: Project A")), br(),
              wellPanel(
                h4("Select an assembly protocol template to use"),
@@ -152,7 +151,7 @@ ui <- navbarPage(
     ),
              
     tabPanel("Upload measurement data",
-             h3("Upload a file with isotope measurement data"),
+             h2("Upload a file with isotope measurement data"),
              p(em("Selected project: Project A")), br(),
              wellPanel(
                  fileInput("input_file", "Select a file to upload"),
@@ -166,7 +165,7 @@ ui <- navbarPage(
     ),
     
     tabPanel("Process measurement data",
-             h3("Post-process isotope measurement data"),
+             h2("Process isotope measurement data"),
              p(em("Selected project: Project A")), br(),
              wellPanel(
                h4("Setup and Options"), br(),
@@ -219,7 +218,7 @@ ui <- navbarPage(
     ),
     
     tabPanel("Instrument performance",
-             h3("Instrument performance"),
+             h2("Instrument performance"),
              p("Take a look at cross-project statistics to analyze instrument performance."), br(),
              wellPanel(
                selectInput("device", "Select a measurement instrument", c("All instruments", "Device A", "Device B")),
@@ -227,6 +226,39 @@ ui <- navbarPage(
                actionButton("show_instrument_stats", "Show me stats for the selected device and timespan", style = blue)
              ),
              plotOutput("instrument_error")
+    ),
+    
+    tabPanel("Manage devices",
+             h2("Manage devices"),
+             hr(),
+             h3("Known devices"),
+             fluidRow(
+               column(4,
+                 wellPanel(
+                   p(strong("Name: "), "L2130i"),
+                   p(strong("File name code: "), "HIDS2341"),
+                   p(strong("Additional info: "), "This device was purchased in 2016. 
+                     It is equipped with an external autosampler."),
+                   actionButton("rem_d1", "Remove device")
+                 )
+               ), 
+               column(4,
+                 wellPanel(
+                   p(strong("Name: "), "L2131i"),
+                   p(strong("File name code: "), "HIDS2544_Fast"),
+                   p(strong("Additional info: "), "This device is equipped with a High-Througput-Evaporator."),
+                   actionButton("rem_d2", "Remove device")
+                  )
+               )
+             ),
+             hr(),
+             h3("Add a new device"),
+             wellPanel(
+               textInput("dev_name", "Name"),
+               textInput("dev_code", "File name code"),
+               textAreaInput("dev_additional", "Additional info"),
+               actionButton("dev_add", "Add device", style = blue)
+             )
     )
 )
 
@@ -235,8 +267,8 @@ server <- function(input, output, session){
   hide_all_tabs()
   
   observeEvent(input$go_to_cross_project_statistics, {go_to_tab("Instrument performance", session)})
-  
   observeEvent(input$go_to_quick_eval, {go_to_tab("Quick evaluation", session)})
+  observeEvent(input$go_to_manage_devices, {go_to_tab("Manage devices", session)})
   
   observeEvent(input$load_project, {go_to_tab("Project", session)})
   observeEvent(input$create_project, {go_to_tab("Project", session)})
@@ -350,6 +382,7 @@ hide_all_tabs <- function(){
   hideTab("page", target = "Process measurement data")
   hideTab("page", target = "Instrument performance")
   hideTab("page", target = "Quick evaluation")
+  hideTab("page", target = "Manage devices")
 }
 go_to_tab <- function(target, session) {
   hide_all_tabs()
