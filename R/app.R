@@ -15,7 +15,7 @@ ui <- navbarPage(
                column(4,
                  wellPanel(
                    h3("Load an existing project"),
-                   p("See information and data for an existing project. Next you can generate an assembly protocol, 
+                   p("See information and data for an existing project. Next you can generate a sample description, 
                       upload measurement data, or process measurement data."),
                    selectInput("project_to_load", "Choose a project", c("Project A", "Project B", "Project C")),
                    actionButton("load_project", "Load selected project", style = blue)
@@ -58,7 +58,7 @@ ui <- navbarPage(
              wellPanel(
                h4("Upload a file with isotope measurement data"),
                fileInput("input_file_x", "Upload a file"),
-               selectInput("template_for_file_upload_x", "Select an assembly protocol to associate with the dataset", 
+               selectInput("template_for_file_upload_x", "Select a sample description to associate with the dataset", 
                            c("", "Protocol A", "Protocol B")),
                actionButton("quick_eval_save_to_proj", "Add the file to a project (optional)")
              ),
@@ -120,17 +120,17 @@ ui <- navbarPage(
              ),
              wellPanel(
                h3("What do you want to do next?"),
-               actionButton("go_assembly", "Generate an assembly protocol", style = blue),
+               actionButton("go_assembly", "Generate a sample description file", style = blue),
                actionButton("go_upload", "Upload measurement data", style = blue),
                actionButton("go_process", "Process measurement data", style = blue)
              )
     ),
     
-    tabPanel("Generate an assembly protocol",
-             h2("Generate an assembly protocol"), 
+    tabPanel("Generate a sample description",
+             h2("Generate a sample description file"), 
              p(em("Selected project: Project A")), br(),
              wellPanel(
-               h4("Select an assembly protocol template to use"),
+               h4("Select a sample description template to use"),
                selectInput("template_for_bst_prot", "", c("Template A", "Template B")),
                actionButton("load_template", "Load selected template"), p(""), br(),
                rHandsontableOutput("ho_table_assembly_prot"), br(),
@@ -138,14 +138,14 @@ ui <- navbarPage(
                actionButton("new_assp_template", "Save as new template")
              ),
              wellPanel(
-               h4("Select a template for the processing of data measured with this assembly protocol"),
+               h4("Select a template for the processing of data measured with this sample description"),
                selectInput("processing_template", "", c("Processing Template 1", "Processing Template 2", "Empty Template")),
                rHandsontableOutput("ho_table_processing"), br(),
                actionButton("save_processing_template", "Save as new processing template")
              ),
              wellPanel(
                h4("All done?"),
-               actionButton("download_assembly_protocol", "Download assembly protocol", style = blue)
+               actionButton("download_assembly_protocol", "Download sample description", style = blue)
              ),
              actionButton("back_to_proj_1", "Go back to the project page")
     ),
@@ -157,7 +157,7 @@ ui <- navbarPage(
                  fileInput("input_file", "Select a file to upload"),
                  textInput("dataset_name", "Name the dataset"),
                  textAreaInput("file_addtional_info", "Information about the dataset (optional)"),
-                 selectInput("template_for_file_upload", "Select an assembly protocol to associate with the dataset", c("", "Protocol A", "Protocol B"))
+                 selectInput("template_for_file_upload", "Select a sample description to associate with the dataset", c("", "Protocol A", "Protocol B"))
                ),
              actionButton("upload_file", "Upload the dataset", style = blue),
              p(""), br(),
@@ -276,7 +276,7 @@ server <- function(input, output, session){
   observeEvent(input$back_to_proj_2, {go_to_tab("Project", session)})
   observeEvent(input$back_to_proj_3, {go_to_tab("Project", session)})
   
-  observeEvent(input$go_assembly, {go_to_tab("Generate an assembly protocol", session)})
+  observeEvent(input$go_assembly, {go_to_tab("Generate a sample description", session)})
   observeEvent(input$go_upload, {go_to_tab("Upload measurement data", session)})
   observeEvent(input$go_process, {go_to_tab("Process measurement data", session)})
   
@@ -377,7 +377,7 @@ server <- function(input, output, session){
 
 hide_all_tabs <- function(){
   hideTab("page", target = "Project")
-  hideTab("page", target = "Generate an assembly protocol")
+  hideTab("page", target = "Generate a sample description")
   hideTab("page", target = "Upload measurement data")
   hideTab("page", target = "Process measurement data")
   hideTab("page", target = "Instrument performance")
