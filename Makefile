@@ -1,2 +1,2 @@
 test:
-	Rscript tests/run_tests.R
+	Rscript -e "devtools::test()"
