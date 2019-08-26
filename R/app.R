@@ -1,9 +1,12 @@
 library(shiny)
-library(rhandsontable)
-library(ggplot2)
-library(readr)
 
-source("page_processData.R")
+if ("./R" %in% list.dirs(recursive = FALSE)){
+  source("R/page_processData.R")
+  source("R/global.R")
+} else {
+  source("page_processData.R")
+  source("global.R")
+}
 
 ui <- navbarPage(
     "Cpt. Picarr", id = "page",
