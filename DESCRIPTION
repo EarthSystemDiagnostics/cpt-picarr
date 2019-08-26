@@ -1,9 +1,12 @@
 Package: cpt-picarr
 Depends: R (>= 3.4.4)
 License: MIT
+Version: 0.1
 Imports:
     shiny,
     rhandsontable
 Suggests:
     testthat,
     shinytest
+Remotes:
+    EarthSystemDiagnostics/piccr@dev
