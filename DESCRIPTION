@@ -1,4 +1,4 @@
-Package: cpt-picarr
+Package: cptPicarr
 Depends: R (>= 3.4.4)
 License: MIT
 Version: 0.1
