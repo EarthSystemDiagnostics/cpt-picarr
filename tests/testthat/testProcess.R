@@ -15,16 +15,15 @@ test_that("test output shape for function process", {
     "NGT",               FALSE,                         FALSE,                    FALSE,                  -34.4,                 2
   )
   files <- list(
-    name = c("fileA", "fileB"),
+    name = c("fileA", "fileB", "fileC"),
     datapath = c("test_data/HIDS2041_IsoWater_20151126_115726.csv", 
                  "test_data/HIDS2041_IsoWater_20151125_111138.csv", 
                  "test_data/HIDS2041_IsoWater_20151127_143940.csv")
   )
   input <- list(
     files = files,
-    useThreePointCalibration = TRUE,
     useMemoryCorrection = TRUE,
-    driftAndCalibration = 1
+    driftAndCalibration = "1/T"
   )
   
   
