@@ -23,7 +23,7 @@ pageProcessDataUI <- function(id){
                      "Use only calibration, without drift correction" = 0)),
       h4("All set up?"), br(),
       actionButton(ns("doProcess"), "Process the data", style = blue),
-      actionButton(ns("doDownload"), "Download the processed data"),
+      downloadButton(ns("download"), "Download the processed data"),
       actionButton(ns("doSave"), "Save the processed data on the server")
     )
   )
@@ -31,7 +31,8 @@ pageProcessDataUI <- function(id){
 
 pageProcessData <- function(input, output, session){
   
-  processedData <- NULL
+  rv <- reactiveValues()
+  rv$processedData <- NULL
   
   processingTemplateInitial <- tribble(
     ~`Identifier 1`, ~`Use for drift correction`, ~`Use for calibration`, ~`Use as control standard`, ~`True delta O18`, ~`True delta H2`,
@@ -49,8 +50,16 @@ pageProcessData <- function(input, output, session){
     req(input$files)
     
     processingTemplateTable <- hot_to_r(input$processingTemplate)
-    processedData <- process(input, processingTemplateTable)
+    rv$processedData <- process(input, processingTemplateTable)
   })
+  
+  output$download <- downloadHandler(
+    filename = "processed.zip",
+    content = function(file) {
+      processedData <- rv$processedData$processed
+      downloadProcessedData(file, processedData)
+    }
+  )
 }
 
 process <- function(input, processingTemplate){
@@ -74,4 +83,19 @@ process <- function(input, processingTemplate){
   names(datasets) <- input$files$name
   
   piccr::processData(datasets, config)
+}
+
+downloadProcessedData <- function(file, processedData){
+  
+  #go to a temp dir to avoid permission issues
+  owd <- setwd(tempdir())
+  on.exit(setwd(owd))
+  
+  filenames <- names(processedData)
+  walk(filenames, ~ write_csv(processedData[[.]], .))
+  
+  # zip does not override existing files
+  file.remove(file)
+  
+  zip(file, filenames)
 }
