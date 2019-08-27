@@ -5,7 +5,8 @@ Version: 0.1
 Imports:
     shiny,
     rhandsontable,
-    tidyverse
+    tidyverse,
+    piccr
 Suggests:
     testthat,
     shinytest,
