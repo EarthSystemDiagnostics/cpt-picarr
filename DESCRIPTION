@@ -4,7 +4,8 @@ License: MIT
 Version: 0.1
 Imports:
     shiny,
-    rhandsontable
+    rhandsontable,
+    tidyverse
 Suggests:
     testthat,
     shinytest,
