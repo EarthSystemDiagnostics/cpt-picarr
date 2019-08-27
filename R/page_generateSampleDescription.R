@@ -29,7 +29,7 @@ pageGenerateSampleDescrUI <- function(id){
     
     wellPanel(
       h3("All done?"),
-      actionButton(ns("downloadSampleDescr"), "Download sample description", style = blue)
+      downloadButton(ns("download"), "Download sample description", style = blue)
     )
   )
 }
@@ -45,23 +45,12 @@ pageGenerateSampleDescr <- function(input, output, session){
   
   observeEvent(input$selectTemplate, {
     templateName <- input$selectTemplate
-    
-    if (templateName %in% c("", "Empty sample description")){
-      template <- emptySampleDescr
-    } else {
-      file <- file.path(BASE_PATH, "templates", templateName)
-      template <- read_csv(file)
-    }
-    
+    template <- getDataForTemplate(templateName)
     rv$sampleDescr <- template
   })
   
   output$hotSampleDescr <- renderRHandsontable({
-    rhandsontable(rv$sampleDescr) %>% 
-      hot_col(col = "Is standard?", type = "checkbox") %>%
-      hot_col(col = "Tray", type = "dropdown", source = 1:2) %>%
-      hot_col(col = "True delta O18 (only for standards)", type = "numeric") %>%
-      hot_col(col = "True delta H2 (only for standards)", type = "numeric")
+    buildHandsontable(rv$sampleDescr)
   })
   
   observeEvent(input$addRow, {
@@ -85,17 +74,47 @@ pageGenerateSampleDescr <- function(input, output, session){
     
     updateTemplateSelectionList(session, name)
   })
+  
+  output$download <- downloadHandler(
+    filename = "sample_description.csv",
+    content = function(file) {
+      data <- rv$sampleDescr %>%
+        select(`Identifier 1`, `Identifier 2`, `Tray`) %>%
+        rowid_to_column("Rack Pos.")
+      write_csv(data, file)
+    }
+  )
 }
 
-#########################
-# ARTEFACTS for this page
-#########################
+######################################
+# HELPERS AND ARTEFACTS for this page
+######################################
 
 updateTemplateSelectionList <- function(session, selected){
   templates <- list.files(file.path(BASE_PATH, "templates"))
   updateSelectInput(session, "selectTemplate", 
                     choices = c("Empty sample description", templates),
                     selected = selected)
+}
+
+getDataForTemplate <- function(templateName) {
+  if (templateName %in% c("", "Empty sample description")){
+    template <- emptySampleDescr
+  } else {
+    file <- file.path(BASE_PATH, "templates", templateName)
+    template <- read_csv(file)
+  }
+  return(template)
+}
+
+buildHandsontable <- function(data){
+  rhandsontable(data) %>%
+    hot_col(col = "Identifier 1", type = "text") %>%
+    hot_col(col = "Identifier 2", type = "text") %>%
+    hot_col(col = "Is standard?", type = "checkbox") %>%
+    hot_col(col = "Tray", type = "dropdown", source = 1:2) %>%
+    hot_col(col = "True delta O18 (only for standards)", type = "numeric") %>%
+    hot_col(col = "True delta H2 (only for standards)", type = "numeric")
 }
 
 processingOptions <- tribble(
