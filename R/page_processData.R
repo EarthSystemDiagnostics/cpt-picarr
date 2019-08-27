@@ -23,8 +23,10 @@ pageProcessDataUI <- function(id){
                      "Use only calibration, without drift correction" = 0)),
       h4("All set up?"), br(),
       actionButton(ns("doProcess"), "Process the data", style = blue),
-      downloadButton(ns("download"), "Download the processed data"),
-      actionButton(ns("doSave"), "Save the processed data on the server")
+      downloadButton(ns("download"), "Download the processed data")
+      
+      # TODO: implement save on server
+      # actionButton(ns("doSave"), "Save the processed data on the server")
     )
   )
 }
