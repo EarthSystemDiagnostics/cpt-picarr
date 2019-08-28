@@ -101,7 +101,7 @@ pageGenerateSampleDescr <- function(input, output, session){
     processingOptions <- hot_to_r(input$hotProcessingOptions)
     uniqueIdentifier <- rv$uniqueIdentifier
     
-    saveOnServer(sampleDescr, processingOptions, uniqueIdentifier)
+    saveOnServer(sampleDescr, processingOptions, uniqueIdentifier, BASE_PATH)
   })
 }
 
@@ -142,15 +142,13 @@ getUniqueIdentifer <- function(data){
   str_c(sampleDescrHash, timestamp)
 }
 
-saveOnServer <- function(sampleDescr, processingOptions, uniqueIdentifier){
+saveOnServer <- function(sampleDescr, processingOptions, uniqueIdentifier, basePath){
   
-  path <- file.path(BASE_PATH, "data", uniqueIdentifier)
+  path <- file.path(basePath, "data", uniqueIdentifier)
   
-  print(path)
-  
-  dir.create(path)
+  dir.create(path, recursive = TRUE)
   write_csv(sampleDescr, file.path(path, "sampleDescription.csv"))
-  write_csv(sampleDescr, file.path(path, "processingOptions.csv"))
+  write_csv(processingOptions, file.path(path, "processingOptions.csv"))
 }
 
 ######################################
