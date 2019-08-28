@@ -1,6 +1,7 @@
 library(tidyverse)
 library(rhandsontable)
 library(piccr)
+library(futile.logger)
 
 pageProcessDataUI <- function(id){
   
@@ -57,8 +58,7 @@ pageProcessData <- function(input, output, session){
     
     req(input$files)
     
-    processingTemplateTable <- hot_to_r(input$processingTemplate)
-    rv$processedData <- process(input, processingTemplateTable)
+    rv$processedData <- process(input, BASE_PATH)
   })
   
   output$download <- downloadHandler(
@@ -75,25 +75,53 @@ pageProcessData <- function(input, output, session){
 # HELPERS
 #######################
 
-process <- function(input, processingTemplate, datasets){
+process <- function(input, basePath){
+  # TODO: clean this function
   
-  standards <- processingTemplate %>%
-    transmute(name = `Identifier 1`, o18_True = `True delta O18`, H2_True = `True delta H2`, 
-              use_for_drift_correction = `Use for drift correction`, use_for_calibration = `Use for calibration`) %>% 
-    transpose() 
+  flog.info(str_c("basePath: ", basePath))
   
+  # read input datasets
+  datasets <- map(input$files$datapath, ~ read_csv(.))
+  names(datasets) <- input$files$name
+  
+  flog.info(str_c("loaded datasets: ", paste(names(datasets))))
+  
+  # Load processing Options for each dataset from disc. (Using the unique identifier coded
+  # into the `Identifier 2` column)
+  processingOptionsForEachDataset <- map(datasets, function(dataset){
+    firstIdentifier2 <- first(dataset$`Identifier 2`)
+    uniqueIdentifier <- str_extract(firstIdentifier2, "(?<=_).+$")
+    
+    path <- file.path(basePath, "data", uniqueIdentifier)
+    processingOptions <- read_csv(file.path(path, "processingOptions.csv"))
+    return(processingOptions)
+  })
+  
+  # create config (as list)
   calibrationMethod <- as.numeric(str_split(input$driftAndCalibration, "/")[[1]][[1]])
   useThreePointCalibration <- as.logical(str_split(input$driftAndCalibration, "/")[[1]][[2]])
   
   config <- list(
-    standards = standards,
     average_over_last_n_inj = 3,
     use_memory_correction = input$useMemoryCorrection,
     calibration_method = calibrationMethod,
     use_three_point_calibration = useThreePointCalibration
   )
   
-  piccr::processData(datasets, config)
+  # process each dataset
+  processedData <- map2(datasets, processingOptionsForEachDataset, function(dataset, processingOptions, config){
+    
+    standards <- processingOptions %>%
+      transmute(name = `Identifier 1`, o18_True = `True delta O18`, H2_True = `True delta H2`, 
+                use_for_drift_correction = `Use for drift correction`, use_for_calibration = `Use for calibration`) %>% 
+      transpose() 
+    
+    config$standards <- standards
+    
+    piccr::processData(list(data = dataset), config)
+  }, config = config)
+  
+  return(processedData)
 }
 
 downloadProcessedData <- function(file, processedData){

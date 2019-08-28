@@ -6,7 +6,8 @@ Imports:
     shiny,
     rhandsontable,
     tidyverse,
-    piccr
+    piccr,
+    futile.logger
 Suggests:
     testthat,
     shinytest,
