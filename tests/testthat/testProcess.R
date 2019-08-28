@@ -9,7 +9,7 @@ test_that("test output shape for function process", {
   dir.create(basePath)
   dir.create(file.path(basePath, "data", "123.456"), recursive = TRUE)
   dir.create(file.path(basePath, "data", "abc.def"), recursive = TRUE)
-  #on.exit(unlink(basePath, recursive = TRUE))
+  on.exit(unlink(basePath, recursive = TRUE))
   
   processingTemplate <- tribble(
     ~`Identifier 1`, ~`Use for drift correction`, ~`Use for calibration`, ~`Use as control standard`, ~`True delta O18`, ~`True delta H2`,
