@@ -41,6 +41,10 @@ pageGenerateSampleDescr <- function(input, output, session){
   rv <- reactiveValues()
   rv$sampleDescr <- emptySampleDescr
   
+  # Used to match measurement data with its sample description and processing template.
+  # Is appended to Identifer 2 to preserve through the measurement process.
+  rv$uniqueIdentifier <- NULL
+  
   output$hotProcessingOptions <- renderRHandsontable(rhandsontable(processingOptions))
   
   observeEvent(input$selectTemplate, {
@@ -78,16 +82,31 @@ pageGenerateSampleDescr <- function(input, output, session){
   output$download <- downloadHandler(
     filename = "sample_description.csv",
     content = function(file) {
-      data <- rv$sampleDescr %>%
+      
+      data <- rv$sampleDescr
+      
+      rv$uniqueIdentifier <- getUniqueIdentifer(data)
+      
+      data <- data %>%
         select(`Identifier 1`, `Identifier 2`, `Tray`) %>%
+        mutate(`Identifier 2` = str_c(`Identifier 2`, "_", rv$uniqueIdentifier)) %>%
         rowid_to_column("Rack Pos.")
       write_csv(data, file)
     }
   )
+  
+  observeEvent(rv$uniqueIdentifier, {
+    
+    sampleDescr <- rv$sampleDescr
+    processingOptions <- hot_to_r(input$hotProcessingOptions)
+    uniqueIdentifier <- rv$uniqueIdentifier
+    
+    saveOnServer(sampleDescr, processingOptions, uniqueIdentifier)
+  })
 }
 
 ######################################
-# HELPERS AND ARTEFACTS for this page
+# HELPERS 
 ######################################
 
 updateTemplateSelectionList <- function(session, selected){
@@ -116,6 +135,27 @@ buildHandsontable <- function(data){
     hot_col(col = "True delta O18 (only for standards)", type = "numeric") %>%
     hot_col(col = "True delta H2 (only for standards)", type = "numeric")
 }
+
+getUniqueIdentifer <- function(data){
+  sampleDescrHash <- digest::digest(data)  # create an md5 hash of the sample description
+  timestamp <- as.numeric(Sys.time())
+  str_c(sampleDescrHash, timestamp)
+}
+
+saveOnServer <- function(sampleDescr, processingOptions, uniqueIdentifier){
+  
+  path <- file.path(BASE_PATH, "data", uniqueIdentifier)
+  
+  print(path)
+  
+  dir.create(path)
+  write_csv(sampleDescr, file.path(path, "sampleDescription.csv"))
+  write_csv(sampleDescr, file.path(path, "processingOptions.csv"))
+}
+
+######################################
+# ARTEFACTS 
+######################################
 
 processingOptions <- tribble(
   ~`Identifier 1`, ~`Use for drift correction`, ~`Use for calibration`, ~`Use as control standard`,

@@ -1,4 +1,4 @@
 library(testthat)
-library(cpt-picarr)
+library(cptPicarr)
 
-test_check("cpt-picarr")
+test_check("cptPicarr")
