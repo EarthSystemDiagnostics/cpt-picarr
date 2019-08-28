@@ -13,7 +13,6 @@ pageProcessDataUI <- function(id){
     wellPanel(
       h4("Setup and Options"), br(),
       fileInput(ns("files"), "Upload measurement files", multiple = TRUE),
-      p(strong("Set the processing options for the standards")),
       radioButtons(ns("useMemoryCorrection"), "Use memory correction?", c("Yes" = TRUE, "No" = FALSE)),
       radioButtons(ns("driftAndCalibration"), "Drift correction and calibration options", 
                    choiceNames = list(
