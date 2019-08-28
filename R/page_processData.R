@@ -70,7 +70,12 @@ pageProcessData <- function(input, output, session){
   )
 }
 
-process <- function(input, processingTemplate){
+
+#######################
+# HELPERS
+#######################
+
+process <- function(input, processingTemplate, datasets){
   
   standards <- processingTemplate %>%
     transmute(name = `Identifier 1`, o18_True = `True delta O18`, H2_True = `True delta H2`, 
@@ -87,9 +92,6 @@ process <- function(input, processingTemplate){
     calibration_method = calibrationMethod,
     use_three_point_calibration = useThreePointCalibration
   )
-  
-  datasets <- map(input$files$datapath, ~ read_csv(.))
-  names(datasets) <- input$files$name
   
   piccr::processData(datasets, config)
 }

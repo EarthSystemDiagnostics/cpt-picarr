@@ -45,7 +45,7 @@ pageGenerateSampleDescr <- function(input, output, session){
   # Is appended to Identifer 2 to preserve through the measurement process.
   rv$uniqueIdentifier <- NULL
   
-  output$hotProcessingOptions <- renderRHandsontable(rhandsontable(processingOptions))
+  output$hotProcessingOptions <- renderRHandsontable(rhandsontable(processingOptionsInitial))
   
   observeEvent(input$selectTemplate, {
     templateName <- input$selectTemplate
@@ -162,7 +162,7 @@ saveOnServer <- function(sampleDescr, processingOptions, uniqueIdentifier, baseP
 # ARTEFACTS 
 ######################################
 
-processingOptions <- tribble(
+processingOptionsInitial <- tribble(
   ~`Identifier 1`, ~`Use for drift correction`, ~`Use for calibration`, ~`Use as control standard`,
   # ------------ / -------------------------- / --------------------- / -------------------------
   "",              FALSE,                          FALSE,                    FALSE,

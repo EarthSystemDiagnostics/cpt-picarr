@@ -1,5 +1,6 @@
 library(testthat)
 library(rhandsontable)
+library(readr)
 
 context("test the function process. (calls piccr)")
 
@@ -14,20 +15,19 @@ test_that("test output shape for function process", {
     "JASE",              TRUE,                          TRUE,                     FALSE,                  -50.22,                 2,
     "NGT",               FALSE,                         FALSE,                    FALSE,                  -34.4,                 2
   )
-  files <- list(
-    name = c("fileA", "fileB", "fileC"),
-    datapath = c("test_data/HIDS2041_IsoWater_20151126_115726.csv", 
-                 "test_data/HIDS2041_IsoWater_20151125_111138.csv", 
-                 "test_data/HIDS2041_IsoWater_20151127_143940.csv")
+  datasets <- list(
+    df1 = read_csv("test_data/HIDS2041_IsoWater_20151126_115726.csv"), 
+    df2 = read_csv("test_data/HIDS2041_IsoWater_20151125_111138.csv"), 
+    df3 = read_csv("test_data/HIDS2041_IsoWater_20151127_143940.csv")
   )
+  
   input <- list(
-    files = files,
     useMemoryCorrection = TRUE,
     driftAndCalibration = "1/T"
   )
   
   
-  processedData <- process(input, processingTemplate)
+  processedData <- process(input, processingTemplate, datasets)
   
   expect_named(processedData)
   expect_length(processedData, 4)
