@@ -1,0 +1,407 @@
+{
+  "input": {
+    "page": "Process measurement data",
+    "processData-doProcess": 1,
+    "processData-driftAndCalibration": "1",
+    "processData-files": null,
+    "processData-processingTemplate": {
+      "data": [
+        [
+          "KARA",
+          false,
+          false,
+          false,
+          -0.1,
+          2
+        ],
+        [
+          "DML",
+          true,
+          true,
+          false,
+          -42.5,
+          2
+        ],
+        [
+          "TD1",
+          true,
+          true,
+          false,
+          -33.9,
+          2
+        ],
+        [
+          "JASE",
+          true,
+          true,
+          false,
+          -50.22,
+          2
+        ],
+        [
+          "NGT",
+          false,
+          false,
+          false,
+          -34.4,
+          2
+        ]
+      ],
+      "changes": {
+        "event": "afterChange",
+        "changes": null
+      },
+      "params": {
+        "data": [
+          [
+            "KARA",
+            false,
+            false,
+            false,
+            -0.1,
+            2
+          ],
+          [
+            "DML",
+            true,
+            true,
+            false,
+            -42.5,
+            2
+          ],
+          [
+            "TD1",
+            true,
+            true,
+            false,
+            -33.9,
+            2
+          ],
+          [
+            "JASE",
+            true,
+            true,
+            false,
+            -50.22,
+            2
+          ],
+          [
+            "NGT",
+            false,
+            false,
+            false,
+            -34.4,
+            2
+          ]
+        ],
+        "rClass": [
+          "tbl_df",
+          "tbl",
+          "data.frame"
+        ],
+        "rColClasses": {
+          "Identifier 1": "character",
+          "Use for drift correction": "logical",
+          "Use for calibration": "logical",
+          "Use as control standard": "logical",
+          "True delta O18": "numeric",
+          "True delta H2": "numeric"
+        },
+        "rColnames": [
+          "Identifier 1",
+          "Use for drift correction",
+          "Use for calibration",
+          "Use as control standard",
+          "True delta O18",
+          "True delta H2"
+        ],
+        "rColHeaders": [
+          "Identifier 1",
+          "Use for drift correction",
+          "Use for calibration",
+          "Use as control standard",
+          "True delta O18",
+          "True delta H2"
+        ],
+        "rRowHeaders": null,
+        "rDataDim": [
+          5,
+          6
+        ],
+        "selectCallback": false,
+        "colHeaders": [
+          "Identifier 1",
+          "Use for drift correction",
+          "Use for calibration",
+          "Use as control standard",
+          "True delta O18",
+          "True delta H2"
+        ],
+        "rowHeaders": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+        ],
+        "columns": [
+          {
+            "type": "text",
+            "default": null
+          },
+          {
+            "type": "checkbox",
+            "default": null
+          },
+          {
+            "type": "checkbox",
+            "default": null
+          },
+          {
+            "type": "checkbox",
+            "default": null
+          },
+          {
+            "type": "numeric",
+            "numericFormat": {
+              "pattern": "0.00"
+            },
+            "default": null
+          },
+          {
+            "type": "numeric",
+            "numericFormat": {
+              "pattern": "0.00"
+            },
+            "default": null
+          }
+        ],
+        "width": null,
+        "height": null,
+        "debug": 0,
+        "search": false,
+        "stretchH": "none",
+        "comments": false,
+        "contextMenu": {
+          "items": {
+            "row_above": [
+
+            ],
+            "row_below": [
+
+            ],
+            "remove_row": [
+
+            ],
+            "hsep3": {
+              "name": "---------",
+              "key": "hsep3"
+            },
+            "undo": [
+
+            ],
+            "redo": [
+
+            ],
+            "hsep4": {
+              "name": "---------",
+              "key": "hsep4"
+            },
+            "alignment": [
+
+            ]
+          }
+        }
+      }
+    },
+    "processData-useMemoryCorrection": "TRUE",
+    "processData-useThreePointCalibration": "TRUE"
+  },
+  "output": {
+    "processData-processingTemplate": {
+      "x": {
+        "data": [
+          {
+            "Identifier 1": "KARA",
+            "Use for drift correction": false,
+            "Use for calibration": false,
+            "Use as control standard": false,
+            "True delta O18": -0.1,
+            "True delta H2": 2
+          },
+          {
+            "Identifier 1": "DML",
+            "Use for drift correction": true,
+            "Use for calibration": true,
+            "Use as control standard": false,
+            "True delta O18": -42.5,
+            "True delta H2": 2
+          },
+          {
+            "Identifier 1": "TD1",
+            "Use for drift correction": true,
+            "Use for calibration": true,
+            "Use as control standard": false,
+            "True delta O18": -33.9,
+            "True delta H2": 2
+          },
+          {
+            "Identifier 1": "JASE",
+            "Use for drift correction": true,
+            "Use for calibration": true,
+            "Use as control standard": false,
+            "True delta O18": -50.22,
+            "True delta H2": 2
+          },
+          {
+            "Identifier 1": "NGT",
+            "Use for drift correction": false,
+            "Use for calibration": false,
+            "Use as control standard": false,
+            "True delta O18": -34.4,
+            "True delta H2": 2
+          }
+        ],
+        "rClass": [
+          "tbl_df",
+          "tbl",
+          "data.frame"
+        ],
+        "rColClasses": {
+          "Identifier 1": "character",
+          "Use for drift correction": "logical",
+          "Use for calibration": "logical",
+          "Use as control standard": "logical",
+          "True delta O18": "numeric",
+          "True delta H2": "numeric"
+        },
+        "rColnames": [
+          "Identifier 1",
+          "Use for drift correction",
+          "Use for calibration",
+          "Use as control standard",
+          "True delta O18",
+          "True delta H2"
+        ],
+        "rColHeaders": [
+          "Identifier 1",
+          "Use for drift correction",
+          "Use for calibration",
+          "Use as control standard",
+          "True delta O18",
+          "True delta H2"
+        ],
+        "rRowHeaders": null,
+        "rDataDim": [
+          5,
+          6
+        ],
+        "selectCallback": false,
+        "colHeaders": [
+          "Identifier 1",
+          "Use for drift correction",
+          "Use for calibration",
+          "Use as control standard",
+          "True delta O18",
+          "True delta H2"
+        ],
+        "rowHeaders": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+        ],
+        "columns": [
+          {
+            "type": "text",
+            "renderer": "customRenderer",
+            "default": null
+          },
+          {
+            "type": "checkbox",
+            "renderer": "customRenderer",
+            "default": null
+          },
+          {
+            "type": "checkbox",
+            "renderer": "customRenderer",
+            "default": null
+          },
+          {
+            "type": "checkbox",
+            "renderer": "customRenderer",
+            "default": null
+          },
+          {
+            "type": "numeric",
+            "numericFormat": {
+              "pattern": "0.00"
+            },
+            "renderer": "customRenderer",
+            "default": null
+          },
+          {
+            "type": "numeric",
+            "numericFormat": {
+              "pattern": "0.00"
+            },
+            "renderer": "customRenderer",
+            "default": null
+          }
+        ],
+        "width": null,
+        "height": null,
+        "debug": 0,
+        "search": false,
+        "stretchH": "none",
+        "comments": false,
+        "contextMenu": {
+          "items": {
+            "row_above": [
+
+            ],
+            "row_below": [
+
+            ],
+            "remove_row": [
+
+            ],
+            "hsep3": {
+              "name": "---------"
+            },
+            "undo": [
+
+            ],
+            "redo": [
+
+            ],
+            "hsep4": {
+              "name": "---------"
+            },
+            "alignment": [
+
+            ]
+          }
+        }
+      },
+      "evals": [
+        "columns.0.renderer",
+        "columns.1.renderer",
+        "columns.2.renderer",
+        "columns.3.renderer",
+        "columns.4.renderer",
+        "columns.5.renderer"
+      ],
+      "jsHooks": [
+
+      ],
+      "deps": [
+
+      ]
+    }
+  },
+  "export": {
+
+  }
+}
