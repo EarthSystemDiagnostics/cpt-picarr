@@ -1,5 +1,6 @@
 library(testthat)
 library(readr)
+library(tibble)
 
 context("test function downloadSampleDescr")
 

@@ -63,18 +63,11 @@ pageGenerateSampleDescr <- function(input, output, session){
   
   observeEvent(input$saveNewTemplate, {
     
-    if (input$templateName == "") {
-      output$helpMessage <- renderText("Please enter a name for the template")
-    }
-    req(input$templateName)
-    
     name <- input$templateName
-    file <- file.path(BASE_PATH, "templates", name)
     data <- hot_to_r(input$hotSampleDescr)
     
-    write_csv(data, file)
-    
-    output$helpMessage <- renderText("Template successfully saved.")
+    helpMessage <- saveNewTemplate(data, name, BASE_PATH)
+    output$helpMessage <- renderText(helpMessage)
     
     updateTemplateSelectionList(session, name)
   })
@@ -103,6 +96,16 @@ pageGenerateSampleDescr <- function(input, output, session){
 ######################################
 # HELPERS 
 ######################################
+
+#' @return A help message to be displayed next to the save button
+saveNewTemplate <- function(data, name, basePath){
+  
+  if (name == "") return("Please enter a name for the template")
+  
+  file <- file.path(basePath, "templates", name)
+  write_csv(data, file)
+  return("Template successfully saved.")
+}
 
 updateTemplateSelectionList <- function(session, selected){
   templates <- list.files(file.path(BASE_PATH, "templates"))
