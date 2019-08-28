@@ -84,14 +84,9 @@ pageGenerateSampleDescr <- function(input, output, session){
     content = function(file) {
       
       data <- rv$sampleDescr
-      
       rv$uniqueIdentifier <- getUniqueIdentifer(data)
       
-      data <- data %>%
-        select(`Identifier 1`, `Identifier 2`, `Tray`) %>%
-        mutate(`Identifier 2` = str_c(`Identifier 2`, "_", rv$uniqueIdentifier)) %>%
-        rowid_to_column("Rack Pos.")
-      write_csv(data, file)
+      downloadSampleDescr(data, file, rv$uniqueIdentifier)
     }
   )
   
@@ -140,6 +135,14 @@ getUniqueIdentifer <- function(data){
   sampleDescrHash <- digest::digest(data)  # create an md5 hash of the sample description
   timestamp <- as.numeric(Sys.time())
   str_c(sampleDescrHash, timestamp)
+}
+
+downloadSampleDescr <- function(data, file, uniqueIdentifier){
+  data <- data %>%
+    select(`Identifier 1`, `Identifier 2`, `Tray`) %>%
+    mutate(`Identifier 2` = str_c(`Identifier 2`, "_", uniqueIdentifier)) %>%
+    rowid_to_column("Rack Pos.")
+  write_csv(data, file)
 }
 
 saveOnServer <- function(sampleDescr, processingOptions, uniqueIdentifier, basePath){
