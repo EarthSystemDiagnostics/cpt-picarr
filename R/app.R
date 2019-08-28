@@ -1,4 +1,5 @@
 library(shiny)
+library(futile.logger)
 
 # the app should run both from the root directory and from R/
 if ("./R" %in% list.dirs(recursive = FALSE)){
@@ -10,6 +11,9 @@ if ("./R" %in% list.dirs(recursive = FALSE)){
   source("page_generateSampleDescription.R")
   source("global.R")
 }
+
+# display all logging messages
+flog.threshold(DEBUG)
 
 ui <- navbarPage(
     "Cpt. Picarr", id = "page",

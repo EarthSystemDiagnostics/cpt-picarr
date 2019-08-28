@@ -5,6 +5,12 @@ context("test the function process. (calls piccr)")
 
 test_that("test output shape for function process", {
   
+  basePath <- file.path(tempdir(), "outputTestProcess")
+  dir.create(basePath)
+  dir.create(file.path(basePath, "data", "123.456"), recursive = TRUE)
+  dir.create(file.path(basePath, "data", "abc.def"), recursive = TRUE)
+  on.exit(unlink(basePath, recursive = TRUE))
+  
   processingTemplate <- tribble(
     ~`Identifier 1`, ~`Use for drift correction`, ~`Use for calibration`, ~`Use as control standard`, ~`True delta O18`, ~`True delta H2`,
     # ------------ / -------------------------- / --------------------- / ------------------------- / ---------------- / ----------------
@@ -14,11 +20,13 @@ test_that("test output shape for function process", {
     "JASE",              TRUE,                          TRUE,                     FALSE,                  -50.22,                 2,
     "NGT",               FALSE,                         FALSE,                    FALSE,                  -34.4,                 2
   )
+  write_csv(processingTemplate, file.path(basePath, "data", "123.456", "processingOptions.csv"))
+  write_csv(processingTemplate, file.path(basePath, "data", "abc.def", "processingOptions.csv"))
+  
   files <- list(
-    name = c("fileA", "fileB", "fileC"),
-    datapath = c("test_data/HIDS2041_IsoWater_20151126_115726.csv", 
-                 "test_data/HIDS2041_IsoWater_20151125_111138.csv", 
-                 "test_data/HIDS2041_IsoWater_20151127_143940.csv")
+    name = c("fileA", "fileB"),
+    datapath = c("test_data/HIDS2041_IsoWater_20151126_115726_with_suffix.csv", 
+                 "test_data/HIDS2041_IsoWater_20151125_111138_with_suffix.csv")
   )
   input <- list(
     files = files,
@@ -26,13 +34,18 @@ test_that("test output shape for function process", {
     driftAndCalibration = "1/T"
   )
   
+  processedData <- process(input, basePath)
   
-  processedData <- process(input, processingTemplate)
+  expect_length(processedData, 2)
+  expect_equal(names(processedData), c("fileA", "fileB"))
   
-  expect_named(processedData)
-  expect_length(processedData, 4)
-  expect_length(processedData$processed, 3)
-  expect_length(processedData$memoryCorrected, 3)
-  expect_length(processedData$pooledStdDev, 3)
-  expect_length(processedData$calibrated, 3)
+  expect_length(processedData$fileA, 4)
+  expect_length(processedData$fileA$memoryCorrected, 1)
+  expect_length(processedData$fileA$processed, 1)
+  expect_length(processedData$fileA$calibrated, 1)
+  expect_length(processedData$fileA$pooledStdDev, 1)
+  expect_is(processedData$fileA$memoryCorrected$data$datasetMemoryCorrected, "data.frame")
+  expect_is(processedData$fileA$memoryCorrected$data$memoryCoefficients, "data.frame")
+  expect_is(processedData$fileA$processed$data, "data.frame")
+  expect_is(processedData$fileA$calibrated$data, "data.frame")
 })

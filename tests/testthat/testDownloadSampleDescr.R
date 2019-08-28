@@ -8,7 +8,7 @@ test_that("test", {
   
   data <- tribble(
     ~`Identifier 1`, ~`Identifier 2`, ~Tray, ~colA,
-    "abc",           "",              1,     "x",
+    "abc",           NA,              1,     "x",
     "xyz",           "abc",           2,     4 
   )
   dataExpected <- tribble(

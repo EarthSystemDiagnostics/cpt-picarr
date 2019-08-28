@@ -4,10 +4,10 @@ library(tibble)
 
 context("test function saveNewTemplate")
 
-test_that("test", {
+test_that("test save sample description template", {
   
   basePath = file.path(tempdir(), "outputTestSaveNewTemplate")
-  dir.create(file.path(basePath, "templates"), recursive = TRUE)
+  dir.create(file.path(basePath, "templates", "sample_description"), recursive = TRUE)
   on.exit(unlink(basePath, recursive = TRUE))
   
   data <- tribble(
@@ -16,10 +16,28 @@ test_that("test", {
   )
   name <- "testTemplate"
   
-  saveNewTemplate(data, name, basePath)
+  saveNewTemplateSampleDescr(data, name, basePath)
   
-  filePath <- file.path(basePath, "templates", name)
+  filePath <- file.path(basePath, "templates", "sample_description", name)
+  expect_true(file.exists(filePath))
+  expect_equal(data, read_csv(filePath))
+})
+
+test_that("test save processing template", {
   
+  basePath = file.path(tempdir(), "outputTestSaveNewTemplate")
+  dir.create(file.path(basePath, "templates", "processing"), recursive = TRUE)
+  on.exit(unlink(basePath, recursive = TRUE))
+  
+  data <- tribble(
+    ~colA, ~colB,
+    1,     2
+  )
+  name <- "testTemplate"
+  
+  saveNewTemplateProcessing(data, name, basePath)
+  
+  filePath <- file.path(basePath, "templates", "processing", name)
   expect_true(file.exists(filePath))
   expect_equal(data, read_csv(filePath))
 })
