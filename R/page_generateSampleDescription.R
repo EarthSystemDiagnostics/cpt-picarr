@@ -58,7 +58,8 @@ pageGenerateSampleDescr <- function(input, output, session){
   })
   
   observeEvent(input$addRow, {
-    rv$sampleDescr <- add_row(rv$sampleDescr, `Tray` = 1)
+    data <- hot_to_r(input$hotSampleDescr)
+    rv$sampleDescr <- add_row(data, `Tray` = 1)
   })
   
   observeEvent(input$saveNewTemplate, {
