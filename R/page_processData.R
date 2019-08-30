@@ -37,7 +37,7 @@ pageProcessDataUI <- function(id){
     ),
     
     wellPanel(
-      h4("Plots"),
+      h4("Plots and tables"),
       uiOutput(ns("plots"))
     ),
     
@@ -52,6 +52,9 @@ pageProcessData <- function(input, output, session){
   rv$rawData <- NULL
   rv$processedData <- NULL
   rv$processingSuccessful <- FALSE
+  
+  # create a namespace function using the id passed by the frontend
+  ns <- reactive(NS(isolate(input$id)))
   
   observeEvent(input$doProcess, {
     req(input$files)
@@ -76,8 +79,7 @@ pageProcessData <- function(input, output, session){
   
   output$plots <- renderUI({
     
-    # create a namespace function using the id passed by the frontend
-    ns <- NS(isolate(input$id))
+    ns <- ns()
     
     if (!rv$processingSuccessful){
       textOutput(ns("plotsInfoMessage"))
@@ -86,22 +88,28 @@ pageProcessData <- function(input, output, session){
         selectInput(ns("datasetForPlotting"), "Which dataset would you like to plot?", choices = input$files$name),
         actionButton(ns("plotWaterLevel"), "water level"),
         actionButton(ns("plotStdDev"), "standard deviation"),
+        actionButton(ns("plotDeviationForStandards"), "deviation from true value for standards"),
         actionButton(ns("plotRawData"), "raw data"),
         actionButton(ns("plotProcessedData"), "processed data"),
+        actionButton(ns("plotRawVsProcessed"), "raw vs. processed"),
         actionButton(ns("plotMemory"), "memory coefficients"),
         actionButton(ns("plotCalibration"), "calibration"),
         actionButton(ns("plotDrift"), "drift"),
         hr(),
-        plotOutput(ns("plot"))
+        uiOutput(ns("plotOutput"))
       )
     }
     
   })
 
-  output$plotsInfoMessage <- renderText("This section will contain plots once you have processed some data.")
+  output$plotsInfoMessage <- renderText("This section will contain plots and tables once you have processed some data.")
   
-  # make water level plot
+  # plot water level
   observeEvent(input$plotWaterLevel, {
+    # ---- ui ----
+    output$plotOutput <- renderUI(plotOutput(ns()("plot")))
+    
+    # ---- server ----
     data <- getRawData(input$datasetForPlotting, input$files)
     output$plot <- renderPlot({
       ggplot(data, mapping = aes(x = Line, y = H2O_Mean)) + 
@@ -111,6 +119,10 @@ pageProcessData <- function(input, output, session){
   
   # plot standard deviation
   observeEvent(input$plotStdDev, {
+    # ---- ui ----
+    output$plotOutput <- renderUI(plotOutput(ns()("plot")))
+    
+    # ---- server ----
     datasetForPlotting <- input$datasetForPlotting
     data <- rv$processedData[[datasetForPlotting]]$processed$data
     
@@ -127,6 +139,52 @@ pageProcessData <- function(input, output, session){
     output$plot <- renderPlot({
       ggplot(data, mapping = aes(x = sd, y = label, color = type)) + 
         geom_point()
+    })
+  })
+  
+  # plot raw measurement data
+  observeEvent(input$plotRawData, {
+    # ---- ui ----
+    output$plotOutput <- renderUI(rHandsontableOutput(ns()("table")))
+    
+    # ---- server ----
+    data <- getRawData(input$datasetForPlotting, input$files)
+    output$table <- renderRHandsontable(rhandsontable(data))
+  })
+  
+  # plot processed measurement data
+  observeEvent(input$plotProcessedData, {
+    # ---- ui ----
+    output$plotOutput <- renderUI(rHandsontableOutput(ns()("table")))
+    
+    # ---- server ----
+    datasetForPlotting <- input$datasetForPlotting
+    data <- rv$processedData[[datasetForPlotting]]$processed$data
+    
+    # don't include identifer that was appended to column `Identifier 2`
+    data <- mutate(data, `Identifier 2` = str_replace(`Identifier 2`, "_.+$", ""))
+    
+    output$table <- renderRHandsontable(rhandsontable(data))
+  })
+  
+  # plot memory coefficients
+  observeEvent(input$plotMemory, {
+    # ---- ui ----
+    output$plotOutput <- renderUI(plotOutput(ns()("plot")))
+    
+    # ---- server ----
+    datasetForPlotting <- input$datasetForPlotting
+    memoryCoefficients <- rv$processedData[[datasetForPlotting]]$memoryCorrected$data$memoryCoefficients
+    memoryCoefficients <- memoryCoefficients %>%
+      rename(O18 = memoryCoeffD18O, H2 = memoryCoeffDD) %>%
+      gather("type", "coeff", O18, H2)
+    
+    output$plot <- renderPlot({
+      ggplot(memoryCoefficients, mapping = aes(x = `Inj Nr`, y = coeff, color = type)) + 
+        geom_point() + 
+        geom_line() + 
+        labs(x = "Injection Nr.", y = "memory coefficient") + 
+        scale_x_continuous(breaks = unique(memoryCoefficients$`Inj Nr`))
     })
   })
 }
@@ -158,5 +216,10 @@ downloadProcessedData <- function(file, processedData){
 getRawData <- function(datasetName, files) {
   datasetIndexInFileList <- which(files$name == datasetName)
   pathToDataset <- files$datapath[[datasetIndexInFileList]]
-  read_csv(pathToDataset)
+  data <- read_csv(pathToDataset)
+  
+  # don't include identifer that was appended to column `Identifier 2`
+  data <- mutate(data, `Identifier 2` = str_replace(`Identifier 2`, "_.+$", ""))
+  
+  return(data)
 }
