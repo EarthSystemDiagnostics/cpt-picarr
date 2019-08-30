@@ -6,10 +6,12 @@ if ("./R" %in% list.dirs(recursive = FALSE)){
   source("R/page_processData.R")
   source("R/page_generateSampleDescription.R")
   source("R/global.R")
+  source("R/helpers_processDataWithPiccr.R")
 } else {
   source("page_processData.R")
   source("page_generateSampleDescription.R")
   source("global.R")
+  source("helpers_processDataWithPiccr.R")
 }
 
 # display all logging messages

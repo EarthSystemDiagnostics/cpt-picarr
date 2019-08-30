@@ -10,6 +10,7 @@ pageProcessDataUI <- function(id){
   
   tagList(
     h2("Process isotope measurement data"),
+    
     wellPanel(
       h4("Setup and Options"), br(),
       fileInput(ns("files"), "Upload measurement files", multiple = TRUE),
@@ -33,19 +34,30 @@ pageProcessDataUI <- function(id){
       
       # TODO: implement save on server
       # actionButton(ns("doSave"), "Save the processed data on the server")
-    )
+    ),
+    
+    wellPanel(
+      h4("Plots"),
+      uiOutput(ns("plots"))
+    ),
+    
+    # silently pass id to backend
+    conditionalPanel("false", textInput(ns("id"), label = "", value = id))
   )
 }
 
 pageProcessData <- function(input, output, session){
   
   rv <- reactiveValues()
+  rv$rawData <- NULL
   rv$processedData <- NULL
+  rv$processingSuccessful <- FALSE
   
   observeEvent(input$doProcess, {
     req(input$files)
     tryCatch({
-        rv$processedData <- process(input, BASE_PATH)
+        rv$processedData <- processDataWithPiccr(input, BASE_PATH)
+        rv$processingSuccessful <- TRUE
         output$helpMessage <- renderText("Data processed successfully.")
       }, error = function(errorMessage) {
         output$helpMessage <- renderText("An error occured and the data could not be processed.")
@@ -57,85 +69,72 @@ pageProcessData <- function(input, output, session){
   output$download <- downloadHandler(
     filename = "processed.zip",
     content = function(file) {
-      print("called")
       processedData <- rv$processedData
       downloadProcessedData(file, processedData)
     }
   )
+  
+  output$plots <- renderUI({
+    
+    # create a namespace function using the id passed by the frontend
+    ns <- NS(isolate(input$id))
+    
+    if (!rv$processingSuccessful){
+      textOutput(ns("plotsInfoMessage"))
+    } else {
+      tagList(
+        selectInput(ns("datasetForPlotting"), "Which dataset would you like to plot?", choices = input$files$name),
+        actionButton(ns("plotWaterLevel"), "water level"),
+        actionButton(ns("plotStdDev"), "standard deviation"),
+        actionButton(ns("plotRawData"), "raw data"),
+        actionButton(ns("plotProcessedData"), "processed data"),
+        actionButton(ns("plotMemory"), "memory coefficients"),
+        actionButton(ns("plotCalibration"), "calibration"),
+        actionButton(ns("plotDrift"), "drift"),
+        hr(),
+        plotOutput(ns("plot"))
+      )
+    }
+    
+  })
+
+  output$plotsInfoMessage <- renderText("This section will contain plots once you have processed some data.")
+  
+  # make water level plot
+  observeEvent(input$plotWaterLevel, {
+    data <- getRawData(input$datasetForPlotting, input$files)
+    output$plot <- renderPlot({
+      ggplot(data, mapping = aes(x = Line, y = H2O_Mean)) + 
+        geom_point()
+    })
+  })
+  
+  # plot standard deviation
+  observeEvent(input$plotStdDev, {
+    datasetForPlotting <- input$datasetForPlotting
+    data <- rv$processedData[[datasetForPlotting]]$processed$data
+    
+    # create y-axis labels
+    data <- data %>% 
+      mutate(block = str_c(".block", block)) %>%
+      mutate(block = replace_na(block, "")) %>%
+      mutate(label = str_c(`Identifier 1`, block))
+    
+    # transform sd data, so that d18O and dD can be plotted in the same plot
+    data <- data %>%
+      gather("type", "sd", sd.O18, sd.H2)
+    
+    output$plot <- renderPlot({
+      ggplot(data, mapping = aes(x = sd, y = label, color = type)) + 
+        geom_point()
+    })
+  })
 }
 
 
 #######################
 # HELPERS
 #######################
-
-process <- function(input, basePath){
-  
-  flog.info(str_c("Processing datasets"))
-  flog.debug(str_c("basePath: ", basePath))
-  
-  flog.debug("Read input datasets")
-  datasets <- readInputDatasets(input)
-  flog.debug(str_c("loaded datasets: ", do.call(paste, as.list(names(datasets)))))
-  
-  flog.debug("Loading processing options")
-  processingOptions <- loadProcessingOptions(datasets, basePath)
-  
-  flog.debug("Generating config")
-  config <- generateConfig(input)
-  
-  flog.debug("Processing the loaded datasets")
-  processedData <- processDatasets(datasets, processingOptions, config)
-  
-  flog.debug("Outputting the processed data")
-  return(processedData)
-}
-
-readInputDatasets <- function(input){
-  datasets <- map(input$files$datapath, ~ read_csv(.))
-  names(datasets) <- input$files$name
-  return(datasets)
-}
-
-loadProcessingOptions <- function(datasets, basePath){
-  # Load processing Options for each dataset from disc. (Using the unique identifier coded
-  # into the `Identifier 2` column)
-  map(datasets, function(dataset){
-    firstIdentifier2 <- first(dataset$`Identifier 2`)
-    uniqueIdentifier <- str_extract(firstIdentifier2, "(?<=_).+$")
-    
-    path <- file.path(basePath, "data", uniqueIdentifier)
-    processingOptions <- read_csv(file.path(path, "processingOptions.csv"))
-    return(processingOptions)
-  })
-}
-
-generateConfig <- function(input){
-  calibrationMethod <- as.numeric(str_split(input$driftAndCalibration, "/")[[1]][[1]])
-  useThreePointCalibration <- as.logical(str_split(input$driftAndCalibration, "/")[[1]][[2]])
-  
-  config <- list(
-    average_over_last_n_inj = 3,
-    use_memory_correction = input$useMemoryCorrection,
-    calibration_method = calibrationMethod,
-    use_three_point_calibration = useThreePointCalibration
-  )
-  return(config)
-}
-
-processDatasets <- function(datasets, processingOptions, config){
-  
-  map2(datasets, processingOptions, function(dataset, processingOptions, config){
-  
-      standards <- processingOptions %>%
-        transmute(name = `Identifier 1`, o18_True = `True delta O18`, H2_True = `True delta H2`, 
-                  use_for_drift_correction = `Use for drift correction`, use_for_calibration = `Use for calibration`) %>% 
-        transpose() 
-      config$standards <- standards
-    
-    piccr::processData(list(data = dataset), config)
-  }, config = config)
-}
 
 downloadProcessedData <- function(file, processedData){
   
@@ -154,4 +153,10 @@ downloadProcessedData <- function(file, processedData){
   # zip does not override existing files
   file.remove(file)
   zip(file, filenames)
+}
+
+getRawData <- function(datasetName, files) {
+  datasetIndexInFileList <- which(files$name == datasetName)
+  pathToDataset <- files$datapath[[datasetIndexInFileList]]
+  read_csv(pathToDataset)
 }
