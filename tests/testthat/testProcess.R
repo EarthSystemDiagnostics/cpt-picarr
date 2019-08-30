@@ -1,9 +1,9 @@
 library(testthat)
 library(rhandsontable)
 
-context("test the function process. (calls piccr)")
+context("test the function processDataWithPiccr (calls piccr)")
 
-test_that("test output shape for function process", {
+test_that("test output shape for function processDataWithPiccr", {
   
   basePath <- file.path(tempdir(), "outputTestProcess")
   dir.create(basePath)
@@ -34,7 +34,7 @@ test_that("test output shape for function process", {
     driftAndCalibration = "1/T"
   )
   
-  processedData <- process(input, basePath)
+  processedData <- processDataWithPiccr(input, basePath)
   
   expect_length(processedData, 2)
   expect_equal(names(processedData), c("fileA", "fileB"))
