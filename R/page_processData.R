@@ -92,7 +92,7 @@ pageProcessData <- function(input, output, session){
         actionButton(ns("plotRawData"), "raw data"),
         actionButton(ns("plotProcessedData"), "processed data"),
         actionButton(ns("plotRawVsProcessed"), "raw vs. processed"),
-        actionButton(ns("plotMemory"), "memory coefficients"),
+        actionButton(ns("plotMemory"), "memory"),
         actionButton(ns("plotCalibration"), "calibration"),
         actionButton(ns("plotDrift"), "drift"),
         hr(),
@@ -170,22 +170,58 @@ pageProcessData <- function(input, output, session){
   # plot memory coefficients
   observeEvent(input$plotMemory, {
     # ---- ui ----
-    output$plotOutput <- renderUI(plotOutput(ns()("plot")))
+    output$plotOutput <- renderUI({
+      tagList(
+        plotOutput(ns()("plotMemCoeff")),
+        br(),
+        plotOutput(ns()("plotCompareD18O")),
+        br(),
+        plotOutput(ns()("plotCompareDD"))
+      )
+    })
     
     # ---- server ----
     datasetForPlotting <- input$datasetForPlotting
-    memoryCoefficients <- rv$processedData[[datasetForPlotting]]$memoryCorrected$data$memoryCoefficients
+    memoryCorrected <- rv$processedData[[datasetForPlotting]]$memoryCorrected$data
+    
+    # gather and pre-process memory coefficient data
+    memoryCoefficients <- memoryCorrected$memoryCoefficients
     memoryCoefficients <- memoryCoefficients %>%
       rename(O18 = memoryCoeffD18O, H2 = memoryCoeffDD) %>%
       gather("type", "coeff", O18, H2)
-    
-    output$plot <- renderPlot({
+    # plot memory coefficients
+    output$plotMemCoeff <- renderPlot({
       ggplot(memoryCoefficients, mapping = aes(x = `Inj Nr`, y = coeff, color = type)) + 
         geom_point() + 
         geom_line() + 
-        labs(x = "Injection Nr.", y = "memory coefficient") + 
+        labs(title = "Memory coefficients", x = "Injection Nr.", y = "memory coefficient") + 
         scale_x_continuous(breaks = unique(memoryCoefficients$`Inj Nr`))
     })
+    
+    # gather and pre-process measurement data for block 1 standards 
+    memoryCorrectedStandards <- memoryCorrected$datasetMemoryCorrected %>%
+      mutate(type = "memory corrected") %>%
+      filter(block == 1)
+    rawStandards <- getRawData(input$datasetForPlotting, input$files) %>% 
+      mutate(type = "raw") %>%
+      filter(Line %in% memoryCorrectedStandards$Line)
+    mergedData <- bind_rows(rawStandards, memoryCorrectedStandards)
+    # plot raw vs. memory corrected (d18O and dD)
+    output$plotCompareD18O <- renderPlot({
+      ggplot(mergedData) +
+        geom_point(mapping = aes(x = `Inj Nr`, y = `d(18_16)Mean`, color = type)) +
+        geom_path(mapping = aes(x = `Inj Nr`, y = `d(18_16)Mean`, color = type)) +
+        facet_grid(`Identifier 1` ~ ., scales = "free") +
+        labs(title = "Raw and memory corrected for block 1 standards (O18)")
+    })
+    output$plotCompareDD <- renderPlot({
+      ggplot(mergedData) +
+        geom_point(mapping = aes(x = `Inj Nr`, y = `d(D_H)Mean`, color = type)) +
+        geom_path(mapping = aes(x = `Inj Nr`, y = `d(D_H)Mean`, color = type)) +
+        facet_grid(`Identifier 1` ~ ., scales = "free") +
+        labs(title = "Raw and memory corrected for block 1 standards (H2)")
+    })
+    
   })
 }
 
