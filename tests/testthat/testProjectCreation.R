@@ -1,7 +1,7 @@
 library(testthat)
 library(rlist)
 
-context("test creating a new project")
+context("test creating a new project and loading an existing project.")
 
 test_that("test projectExistsAlready", {
   
@@ -26,7 +26,7 @@ test_that("test createProjectDirectory", {
   
 })
 
-test_that("test crateProjectInfoFile", {
+test_that("test createProjectInfoFile", {
   
   basePath <- file.path(tempdir(), "testProjectCreation3")
   dir.create(basePath)
@@ -47,14 +47,14 @@ test_that("test crateProjectInfoFile", {
     date = "2019-09-06"
   )
   
-  crateProjectInfoFile(input, basePath = basePath)
+  createProjectInfoFile(input, basePath = basePath)
   
   filePath <- file.path(basePath, "Project A", "projectInfo.json")
   expect_true(file.exists(filePath))
   expect_equal(list.load(filePath), infoExpected)
 })
 
-test_that("test crateProjectInfoFile (date is NA)", {
+test_that("test createProjectInfoFile (date is NA)", {
   
   basePath <- file.path(tempdir(), "testProjectCreation4")
   dir.create(basePath)
@@ -75,9 +75,26 @@ test_that("test crateProjectInfoFile (date is NA)", {
     date = NA
   )
   
-  crateProjectInfoFile(input, basePath = basePath)
+  createProjectInfoFile(input, basePath = basePath)
   
   filePath <- file.path(basePath, "Project A", "projectInfo.json")
   expect_true(file.exists(filePath))
   expect_equal(list.load(filePath), infoExpected)
+})
+
+test_that("test getExistingProjects", {
+  
+  basePath <- file.path(tempdir(), "testProjectCreation4")
+  dir.create(basePath)
+  dir.create(file.path(basePath, "Project A"))
+  file.create(file.path(basePath, "Project A", "projectInfo.json"))
+  dir.create(file.path(basePath, "Project B"))
+  file.create(file.path(basePath, "Project B", "projectInfo.json"))
+  dir.create(file.path(basePath, "Some Folder"))
+  on.exit(unlink(basePath, recursive = TRUE))
+  
+  expect_equal(
+    getExistingProjects(basePath),
+    c("Project A", "Project B")
+  )
 })
