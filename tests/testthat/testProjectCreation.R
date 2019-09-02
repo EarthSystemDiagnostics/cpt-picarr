@@ -98,3 +98,24 @@ test_that("test getExistingProjects", {
     c("Project A", "Project B")
   )
 })
+
+test_that("test getProjInfo", {
+  
+  basePath <- file.path(tempdir(), "testProjectCreation5")
+  dir.create(basePath)
+  dir.create(file.path(basePath, "Project A"))
+  on.exit(unlink(basePath, recursive = TRUE))
+  
+  info <- list(
+    name = "Project A",
+    people = "Max Mustermann",
+    additionalInfo = "some additional \n info.",
+    date = NA
+  )
+  list.save(info, file.path(basePath, "Project A", "projectInfo.json"))
+  
+  expect_equal(
+    loadProjectInfo("Project A", basePath),
+    info
+  )
+})
