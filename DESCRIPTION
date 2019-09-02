@@ -7,7 +7,8 @@ Imports:
     rhandsontable,
     tidyverse,
     piccr,
-    futile.logger
+    futile.logger,
+    digest
 Suggests:
     testthat,
     shinytest,
