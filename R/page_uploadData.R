@@ -21,10 +21,14 @@ pageUploadDataUI <- function(id){
 pageUploadData <- function(input, output, session, project){
   
   observeEvent(input$upload, {
-    message <- uploadDataset(input, project)
+    message <- uploadDataset(input, project())
     output$helpMessage <- renderText(message)
   })
 }
+
+##################
+# HELPERS
+##################
 
 uploadDataset <- function(input, project, basePath = BASE_PATH){
   
