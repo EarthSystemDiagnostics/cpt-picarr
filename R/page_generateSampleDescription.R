@@ -49,8 +49,8 @@ pageGenerateSampleDescrUI <- function(id){
 pageGenerateSampleDescr <- function(input, output, session, project){
   
   observeEvent(input$loadTemplates, {
-    updateTemplateSelectionListSampleDescr(session, NULL, project)
-    updateTemplateSelectionListProcessing(session, NULL, project)
+    updateTemplateSelectionListSampleDescr(session, NULL, project())
+    updateTemplateSelectionListProcessing(session, NULL, project())
   })
   
   
@@ -68,7 +68,7 @@ pageGenerateSampleDescr <- function(input, output, session, project){
   
   observeEvent(input$selectTemplateSampleDescr, {
     templateName <- input$selectTemplateSampleDescr
-    template <- getDataForTemplateSampleDescr(templateName, project)
+    template <- getDataForTemplateSampleDescr(templateName, project())
     rv$sampleDescr <- template
   })
   
@@ -86,17 +86,17 @@ pageGenerateSampleDescr <- function(input, output, session, project){
     name <- input$templateNameSampleDescr
     data <- hot_to_r(input$hotSampleDescr)
     
-    helpMessage <- saveNewTemplate(data, name, project, "sampleDescription")
+    helpMessage <- saveNewTemplate(data, name, project(), "sampleDescription")
     output$helpMessageSampleDescr <- renderText(helpMessage)
     
-    updateTemplateSelectionListSampleDescr(session, name, project)
+    updateTemplateSelectionListSampleDescr(session, name, project())
   })
 
   # -------- PROCESSING ----------------
   
   observeEvent(input$selectTemplateProcessing, {
     templateName <- input$selectTemplateProcessing
-    template <- getDataForTemplateProcessing(templateName, project)
+    template <- getDataForTemplateProcessing(templateName, project())
     rv$processingOptions <- template
   })
   
@@ -114,10 +114,10 @@ pageGenerateSampleDescr <- function(input, output, session, project){
     name <- input$templateNameProcessing
     data <- hot_to_r(input$hotProcessingOptions)
     
-    helpMessage <- saveNewTemplate(data, name, project, "processing")
+    helpMessage <- saveNewTemplate(data, name, project(), "processing")
     output$helpMessageProcessing <- renderText(helpMessage)
     
-    updateTemplateSelectionListProcessing(session, name, project)
+    updateTemplateSelectionListProcessing(session, name, project())
   })
   
   # -------- DOWNLOAD AND SAVE ----------------

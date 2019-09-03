@@ -68,9 +68,9 @@ server <- function(input, output, session){
   ownEnvir <- environment()
   callModule(pageHome, "home", serverEnvironment = ownEnvir)
   callModule(pageProject, "project", project = project, serverEnvironment = ownEnvir)
+  callModule(pageGenerateSampleDescr, "sampleDescription", project = project)
+  callModule(pageUploadData, "uploadData", project = project)
   callModule(pageProcessData, "processData")
-  callModule(pageGenerateSampleDescr, "sampleDescription", project = rv$project)
-  callModule(pageUploadData, "uploadData", project = reactive({rv$project}))
   
 }
 
