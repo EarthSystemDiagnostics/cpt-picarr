@@ -6,12 +6,14 @@ library(rlist)
 if ("./R" %in% list.dirs(recursive = FALSE)){
   source("R/page_processData.R")
   source("R/page_generateSampleDescription.R")
+  source("R/page_uploadData.R")
   source("R/global.R")
   source("R/helpers_processDataWithPiccr.R")
   source("R/helpers_createOrLoadProject.R")
 } else {
   source("page_processData.R")
   source("page_generateSampleDescription.R")
+  source("page_uploadData.R")
   source("global.R")
   source("helpers_processDataWithPiccr.R")
   source("helpers_createOrLoadProject.R")
@@ -84,10 +86,16 @@ ui <- navbarPage(
     tabPanel(
       "Process measurement data",
       pageProcessDataUI("processData")
+    ),
+    tabPanel(
+      "Upload measurement data",
+      pageUploadDataUI("uploadData")
     )
 )
 
 server <- function(input, output, session){
+  
+  # ------------ INITIALIZATION --------------
   
   rv <- reactiveValues()
   rv$project <- NULL  # the loaded project
@@ -95,13 +103,24 @@ server <- function(input, output, session){
   updateProjectSelection(session)
   hideAllTabs()
   
+  # ------------- CALL MODULES -------------
+  
+  callModule(pageProcessData, "processData")
+  callModule(pageGenerateSampleDescr, "sampleDescription", project = rv$project)
+  callModule(pageUploadData, "uploadData", project = rv$project)
+  
+  # ------------ NAVIGATION BETWEEN PAGES -----------
+  
+  observeEvent(input$goToGenerateSampleDescr, goToTab("Generate a sample description", session))
+  observeEvent(input$goToProcessData, goToTab("Process measurement data", session))
+  observeEvent(input$goToUploadData, goToTab("Upload measurement data", session))
+  
+  # ------------ REACT TO USER INPUT --------------
+  
   observeEvent(input$loadProject, {
     goToTab("Project", session)
     rv$project <- input$projectToLoad
   })
-  observeEvent(input$goToGenerateSampleDescr, goToTab("Generate a sample description", session))
-  observeEvent(input$goToProcessData, goToTab("Process measurement data", session))
-  observeEvent(input$goToUploadData, goToTab("Upload measurement data", session))
   
   observeEvent(input$createProject, {
     
@@ -121,6 +140,7 @@ server <- function(input, output, session){
     }
   })
   
+  # render output on the project page
   observeEvent(rv$project, {
     
     projectName <- rv$project
@@ -132,13 +152,14 @@ server <- function(input, output, session){
     output$projInfoAdditional <- renderText(projectInfo$additionalInfo)
     output$projInfoDate       <- renderText(projectInfo$date)
     
-    # display project data
+    # TODO: display project data
     
   })
-  
-  callModule(pageProcessData, "processData")
-  callModule(pageGenerateSampleDescr, "sampleDescription", project = rv$project)
 }
+
+######################
+# HELPERS
+######################
 
 loadProjectInfo <- function(projectName, basePath = BASE_PATH){
   path <- file.path(basePath, projectName, "projectInfo.json")
