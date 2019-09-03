@@ -63,7 +63,16 @@ ui <- navbarPage(
         textOutput("projInfoDate")
       ),
       wellPanel(
-        h3("Project Data")
+        # TODO
+        h3("Project Data"),
+        p("TODO")
+      ),
+      wellPanel(
+        h3("What do you want to do next?"),
+        
+        actionButton("goToGenerateSampleDescr", "Generate a sample description", style = blue),
+        actionButton("goToUploadData", "Upload measurement data", style = blue),
+        actionButton("goToProcessData", "Process measurement data", style = blue)
         
       )
     ),
@@ -90,6 +99,9 @@ server <- function(input, output, session){
     goToTab("Project", session)
     rv$project <- input$projectToLoad
   })
+  observeEvent(input$goToGenerateSampleDescr, goToTab("Generate a sample description", session))
+  observeEvent(input$goToProcessData, goToTab("Process measurement data", session))
+  observeEvent(input$goToUploadData, goToTab("Upload measurement data", session))
   
   observeEvent(input$createProject, {
     
@@ -121,10 +133,11 @@ server <- function(input, output, session){
     output$projInfoDate       <- renderText(projectInfo$date)
     
     # display project data
+    
   })
   
   callModule(pageProcessData, "processData")
-  callModule(pageGenerateSampleDescr, "sampleDescription")
+  callModule(pageGenerateSampleDescr, "sampleDescription", project = rv$project)
 }
 
 loadProjectInfo <- function(projectName, basePath = BASE_PATH){
@@ -135,6 +148,7 @@ loadProjectInfo <- function(projectName, basePath = BASE_PATH){
 hideAllTabs <- function(){
   hideTab("page", target = "Generate a sample description")
   hideTab("page", target = "Process measurement data")
+  hideTab("page", target = "Project")
 }
 
 goToTab <- function(target, session) {

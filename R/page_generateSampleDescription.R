@@ -11,6 +11,9 @@ pageGenerateSampleDescrUI <- function(id){
   tagList(
     h2("Generate a sample description file"), br(),
     
+    p("Click this button before doing anything else:"),
+    actionButton(ns("loadTemplates"), "Load templates for the selected project", style = blue), p(""), br(),
+    
     wellPanel(
       h3("Create a sample description"),
       selectInput(ns("selectTemplateSampleDescr"), "Select a template", c()), p(""), br(),
@@ -42,10 +45,16 @@ pageGenerateSampleDescrUI <- function(id){
   )
 }
 
-pageGenerateSampleDescr <- function(input, output, session){
+# project is a reactive value
+pageGenerateSampleDescr <- function(input, output, session, project){
   
-  updateTemplateSelectionListSampleDescr(session, NULL)
-  updateTemplateSelectionListProcessing(session, NULL)
+  observeEvent(input$loadTemplates, {
+    updateTemplateSelectionListSampleDescr(session, NULL, project)
+    updateTemplateSelectionListProcessing(session, NULL, project)
+  })
+  
+  
+  # -------- REACTIVE VALUES -----------------
   
   rv <- reactiveValues()
   rv$sampleDescr <- emptySampleDescr
@@ -58,8 +67,8 @@ pageGenerateSampleDescr <- function(input, output, session){
   # -------- SAMPLE DESCRIPTION ----------------
   
   observeEvent(input$selectTemplateSampleDescr, {
-    templateNameSampleDescr <- input$selectTemplateSampleDescr
-    template <- getDataForTemplateSampleDescr(templateNameSampleDescr)
+    templateName <- input$selectTemplateSampleDescr
+    template <- getDataForTemplateSampleDescr(templateName, project)
     rv$sampleDescr <- template
   })
   
@@ -69,7 +78,7 @@ pageGenerateSampleDescr <- function(input, output, session){
   
   observeEvent(input$addRowSampleDescr, {
     data <- hot_to_r(input$hotSampleDescr)
-    rv$sampleDescr <- add_row(data, `Tray` = 1)
+    rv$sampleDescr <- add_row(data, Tray = 1)
   })
   
   observeEvent(input$saveNewTemplateSampleDescr, {
@@ -77,17 +86,17 @@ pageGenerateSampleDescr <- function(input, output, session){
     name <- input$templateNameSampleDescr
     data <- hot_to_r(input$hotSampleDescr)
     
-    helpMessage <- saveNewTemplateSampleDescr(data, name, BASE_PATH)
+    helpMessage <- saveNewTemplate(data, name, project, "sampleDescription")
     output$helpMessageSampleDescr <- renderText(helpMessage)
     
-    updateTemplateSelectionListSampleDescr(session, name)
+    updateTemplateSelectionListSampleDescr(session, name, project)
   })
 
   # -------- PROCESSING ----------------
   
   observeEvent(input$selectTemplateProcessing, {
     templateName <- input$selectTemplateProcessing
-    template <- getDataForTemplateProcessing(templateName)
+    template <- getDataForTemplateProcessing(templateName, project)
     rv$processingOptions <- template
   })
   
@@ -97,7 +106,7 @@ pageGenerateSampleDescr <- function(input, output, session){
   
   observeEvent(input$addRowProcessing, {
     data <- hot_to_r(input$hotProcessingOptions)
-    rv$processingOptions <- add_row(data, `Tray` = 1)
+    rv$processingOptions <- add_row(data)
   })
   
   observeEvent(input$saveNewTemplateProcessing, {
@@ -105,10 +114,10 @@ pageGenerateSampleDescr <- function(input, output, session){
     name <- input$templateNameProcessing
     data <- hot_to_r(input$hotProcessingOptions)
     
-    helpMessage <- saveNewTemplateProcessing(data, name, BASE_PATH)
+    helpMessage <- saveNewTemplate(data, name, project, "processing")
     output$helpMessageProcessing <- renderText(helpMessage)
     
-    updateTemplateSelectionListProcessing(session, name)
+    updateTemplateSelectionListProcessing(session, name, project)
   })
   
   # -------- DOWNLOAD AND SAVE ----------------
@@ -130,7 +139,7 @@ pageGenerateSampleDescr <- function(input, output, session){
     processingOptions <- hot_to_r(input$hotProcessingOptions)
     uniqueIdentifier <- rv$uniqueIdentifier
     
-    saveOnServer(sampleDescr, processingOptions, uniqueIdentifier, BASE_PATH)
+    saveOnServer(sampleDescr, processingOptions, uniqueIdentifier)
   })
 }
 
@@ -139,54 +148,49 @@ pageGenerateSampleDescr <- function(input, output, session){
 ######################################
 
 #' @return A help message to be displayed next to the save button
-saveNewTemplateSampleDescr <- function(data, name, basePath){
+saveNewTemplate <- function(data, name, project, mode = "sampleDescription", basePath = BASE_PATH){
   
   if (name == "") return("Please enter a name for the template")
   
-  file <- file.path(basePath, "templates", "sample_description", name)
+  templateDir <- file.path(basePath, project, "templates", mode)
+  file <- file.path(templateDir, name)
+  
+  flog.debug(sprintf("saving new template to %s", file))
+  
+  dir.create(templateDir, recursive = TRUE)
   write_csv(data, file)
   return("Template successfully saved.")
 }
 
-#' @return A help message to be displayed next to the save button
-saveNewTemplateProcessing <- function(data, name, basePath){
-  
-  if (name == "") return("Please enter a name for the template")
-  
-  file <- file.path(basePath, "templates", "processing", name)
-  write_csv(data, file)
-  return("Template successfully saved.")
-}
-
-updateTemplateSelectionListSampleDescr <- function(session, selected){
-  templates <- list.files(file.path(BASE_PATH, "templates", "sample_description"))
+updateTemplateSelectionListSampleDescr <- function(session, selected, project){
+  templates <- list.files(file.path(BASE_PATH, project, "templates", "sampleDescription"))
   updateSelectInput(session, "selectTemplateSampleDescr", 
                     choices = c("Empty sample description", templates),
                     selected = selected)
 }
 
-updateTemplateSelectionListProcessing <- function(session, selected){
-  templates <- list.files(file.path(BASE_PATH, "templates", "processing"))
+updateTemplateSelectionListProcessing <- function(session, selected, project){
+  templates <- list.files(file.path(BASE_PATH, project, "templates", "processing"))
   updateSelectInput(session, "selectTemplateProcessing", 
                     choices = c("Empty processing template", templates),
                     selected = selected)
 }
 
-getDataForTemplateSampleDescr <- function(templateName) {
+getDataForTemplateSampleDescr <- function(templateName, project) {
   if (templateName %in% c("", "Empty sample description")){
     template <- emptySampleDescr
   } else {
-    file <- file.path(BASE_PATH, "templates", "sample_description", templateName)
+    file <- file.path(BASE_PATH, project, "templates", "sampleDescription", templateName)
     template <- read_csv(file)
   }
   return(template)
 }
 
-getDataForTemplateProcessing <- function(templateName) {
+getDataForTemplateProcessing <- function(templateName, project) {
   if (templateName %in% c("", "Empty processing template")){
     template <- processingOptionsInitial
   } else {
-    file <- file.path(BASE_PATH, "templates", "processing", templateName)
+    file <- file.path(BASE_PATH, project, "templates", "processing", templateName)
     template <- read_csv(file)
   }
   return(template)
@@ -230,9 +234,9 @@ downloadSampleDescr <- function(data, file, uniqueIdentifier){
   write_csv(data, file)
 }
 
-saveOnServer <- function(sampleDescr, processingOptions, uniqueIdentifier, basePath){
+saveOnServer <- function(sampleDescr, processingOptions, uniqueIdentifier, basePath = BASE_PATH){
   
-  path <- file.path(basePath, "data", uniqueIdentifier)
+  path <- file.path(basePath, "processingOptions", uniqueIdentifier)
   
   dir.create(path, recursive = TRUE)
   write_csv(sampleDescr, file.path(path, "sampleDescription.csv"))
