@@ -4,50 +4,34 @@ library(rlist)
 
 # the app should run both from the root directory and from R/
 if ("./R" %in% list.dirs(recursive = FALSE)){
+  source("R/page_home.R")
   source("R/page_processData.R")
   source("R/page_generateSampleDescription.R")
   source("R/page_uploadData.R")
   source("R/global.R")
   source("R/helpers_processDataWithPiccr.R")
   source("R/helpers_createOrLoadProject.R")
+  source("R/helpers_goToTab.R")
 } else {
+  source("page_home.R")
   source("page_processData.R")
   source("page_generateSampleDescription.R")
   source("page_uploadData.R")
   source("global.R")
   source("helpers_processDataWithPiccr.R")
   source("helpers_createOrLoadProject.R")
+  source("helpers_goToTab.R")
 }
 
 # display all logging messages
 flog.threshold(DEBUG)
 
 ui <- navbarPage(
-    "Cpt. Picarr", id = "page",
+    "Cpt. Picarr", id = "app",
     
     tabPanel(
       "Home",
-      h2("Welcome to Cpt. Picarr!"),
-      h4("What do you want to do today?"),
-      
-      wellPanel(
-        h3("Load an existing project"),
-        p("See information and data for an existing project. Next you can generate 
-            a sample description, upload measurement data, or process measurement data."),
-        selectInput("projectToLoad", "Choose a project", c()),
-        actionButton("loadProject", "Load selected project", style = blue)
-      ),
-      
-      wellPanel(
-        h3("Create a new project"),
-        p("Create a new projecte to manage related data."),
-        textInput("projectName", "Project name"),
-        textInput("projectPeople", "People involved (optional)"),
-        textAreaInput("projectAdditionalInfo", "Additional info (optional)"),
-        dateInput("projectDate", "Expedition date (optional)", value = NA),
-        actionButton("createProject", "Create new project", style = blue),
-        textOutput("infoMessage")
-      )
+      pageHomeUI("home")
     ),
     
     tabPanel(
@@ -98,9 +82,8 @@ server <- function(input, output, session){
   # ------------ INITIALIZATION --------------
   
   rv <- reactiveValues()
-  rv$project <- NULL  # the loaded project
+  rv$project <- ""
   
-  updateProjectSelection(session)
   hideAllTabs()
   
   # ------------- CALL MODULES -------------
@@ -108,6 +91,7 @@ server <- function(input, output, session){
   callModule(pageProcessData, "processData")
   callModule(pageGenerateSampleDescr, "sampleDescription", project = rv$project)
   callModule(pageUploadData, "uploadData", project = rv$project)
+  callModule(pageHome, "home", serverEnvironment = environment())
   
   # ------------ NAVIGATION BETWEEN PAGES -----------
   
@@ -117,33 +101,11 @@ server <- function(input, output, session){
   
   # ------------ REACT TO USER INPUT --------------
   
-  observeEvent(input$loadProject, {
-    goToTab("Project", session)
-    rv$project <- input$projectToLoad
-  })
-  
-  observeEvent(input$createProject, {
-    
-    name <- input$projectName
-    req(name)
-    
-    if (projectExistsAlready(name)) {
-      output$infoMessage <- renderText(
-        sprintf("Project named '%s' exists already. Please choose a different name.", name))
-    } else {
-      createProjectDirectory(name)
-      createProjectInfoFile(input)
-      updateProjectSelection(session)
-      output$infoMessage <- renderText("New project created.")
-      goToTab("Project", session)
-      rv$project <- name
-    }
-  })
-  
   # render output on the project page
   observeEvent(rv$project, {
     
     projectName <- rv$project
+    req(projectName)
     
     # display project information
     projectInfo               <- loadProjectInfo(projectName)
@@ -171,12 +133,5 @@ hideAllTabs <- function(){
   hideTab("page", target = "Process measurement data")
   hideTab("page", target = "Project")
 }
-
-goToTab <- function(target, session) {
-  hideAllTabs()
-  showTab("page", target = target)
-  updateTabsetPanel(session, "page", selected = target)
-}
-
 
 shinyApp(ui, server)

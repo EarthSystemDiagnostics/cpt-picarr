@@ -1,19 +1,6 @@
 library(purrr)
 library(rlist)
 
-updateProjectSelection <- function(session){
-  # add existing projects to selection dropdown for "Load an existing project"
-  updateSelectInput(session, "projectToLoad", choices = getExistingProjects())
-}
-
-getExistingProjects <- function(basePath = BASE_PATH){
-  dirs <- list.dirs(basePath, recursive = FALSE, full.names = FALSE)
-  
-  # a project is a folder that contains a projectInfo.json file
-  projects <- purrr::keep(dirs, ~ file.exists(file.path(basePath, ., "projectInfo.json")))
-  return(projects)
-}
-
 projectExistsAlready <- function(projectName, basePath = BASE_PATH){
   dir.exists(file.path(basePath, projectName))
 }
