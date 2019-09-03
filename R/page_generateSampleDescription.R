@@ -127,7 +127,7 @@ pageGenerateSampleDescr <- function(input, output, session, project){
     content = function(file) {
       
       data <- rv$sampleDescr
-      rv$uniqueIdentifier <- getUniqueIdentifer(data)
+      rv$uniqueIdentifier <- generateUniqueIdentifer(data)
       
       downloadSampleDescr(data, file, rv$uniqueIdentifier)
     }
@@ -214,7 +214,7 @@ buildHandsontableProcessing <- function(data){
     hot_col(col = "True delta H2", type = "numeric")
 }
 
-getUniqueIdentifer <- function(data){
+generateUniqueIdentifer <- function(data){
   sampleDescrHash <- digest::digest(data)  # create an md5 hash of the sample description
   timestamp <- as.numeric(Sys.time())
   str_c(sampleDescrHash, timestamp)

@@ -1,6 +1,6 @@
 library(testthat)
 
-context("test function getUniqueIdentifier")
+context("test function generateUniqueIdentifier")
 
 test_that("test", {
   
@@ -13,8 +13,8 @@ test_that("test", {
     3,     4
   )
   
-  id1 <- getUniqueIdentifer(data1)
-  id2 <- getUniqueIdentifer(data2)
+  id1 <- generateUniqueIdentifer(data1)
+  id2 <- generateUniqueIdentifer(data2)
   
   expect_type(id1, "character")
   expect_true(id1 != id2)

@@ -35,27 +35,61 @@ uploadDataset <- function(input, project, basePath = BASE_PATH){
   file <- input$file
   name <- input$name
   
-  if (is.null(file)) return("You need to upload a file before clicking this button.")
-  if (is.null(name)) return("You need to name the dataset before clicking this button.")
+  if (!isTruthy(file)) return("You need to upload a file before clicking this button.")
+  if (!isTruthy(name)) return("You need to name the dataset before clicking this button.")
   
   fileName <- file$name
   filePath <- file$datapath
   
   data <- read_csv(filePath)
+  uniqueIdentifier <- getUniqueIdentifer(data)
   
-  outputDir <- file.path(basePath, project, "data", name)
-  dir.create(outputDir, recursive = TRUE)
-  write_csv(data, file.path(outputDir, fileName))
+  if (is.na(uniqueIdentifier)) 
+    return(sprintf("Error: No unique identifier found in the uploaded dataset. (path: %s)", filePath))
   
-  firstIdentifier2 <- first(data$`Identifier 2`)
-  uniqueIdentifier <- str_extract(firstIdentifier2, "(?<=_).+$")
   optionsPath <- file.path(basePath, "processingOptions", uniqueIdentifier)
+  
+  if (dataIsMissing(optionsPath))
+    return(sprintf("Error: Could not find processing options for the uploaded dataset. (unique id: %s)", uniqueIdentifier))
+  
   processingOptions <- read_csv(file.path(optionsPath, "processingOptions.csv"))
   sampleDescription <- read_csv(file.path(optionsPath, "sampleDescription.csv"))
   
+  outputDir <- file.path(basePath, project, "data", name)
+  
+  if (dir.exists(outputDir))
+    return(sprintf("Upload aborted. A dataset with the same name exists already. (path: %s)", outputDir))
+  
+  saveData(outputDir, data, fileName, processingOptions, sampleDescription)
+  saveAdditionalInfo(outputDir, input$info)
+  
+  return(sprintf("Dataset sucessfully uploaded. (The uploaded data is in %s)", outputDir))
+  
+}
+
+getUniqueIdentifer <- function(dataset){
+  firstIdentifier2 <- first(dataset$`Identifier 2`)
+  uniqueIdentifier <- str_extract(firstIdentifier2, "(?<=_).+$")
+  return(uniqueIdentifier)
+}
+
+dataIsMissing <- function(optionsPath){
+  processingOptionsExist <- file.exists(file.path(optionsPath, "processingOptions.csv"))
+  sampleDescriptionExists <- file.exists(file.path(optionsPath, "sampleDescription.csv"))
+  !processingOptionsExist | !sampleDescriptionExists
+}
+
+saveData <- function(outputDir, data, fileName, processingOptions, sampleDescription){
+  
+  dir.create(outputDir, recursive = TRUE)
+  
+  dataWithoutIdentifier <- mutate(data, `Identifier 2` = str_replace(`Identifier 2`, "_[^_]+$", ""))
+  write_csv(dataWithoutIdentifier, file.path(outputDir, fileName))
   write_csv(processingOptions, file.path(outputDir, "processingOptions.csv"))
   write_csv(sampleDescription, file.path(outputDir, "sampleDescription.csv"))
-  
-  return("Dataset sucessfully uploaded.")
-  
+}
+
+saveAdditionalInfo <- function(outputDir, info){
+  path <- file.path(outputDir, "fileInfo.txt")
+  write_file(info, path)
 }
