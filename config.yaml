@@ -1,0 +1,7 @@
+# Config file for Cpt-Picarr
+#
+# The BASE_PATH is the directory that will contain all the
+# application data. Set it to the location where you would
+# like to store the data. It is highly recommended to use an
+# absolute path (like /usr/..).
+BASE_PATH:        ./appdata

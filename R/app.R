@@ -1,32 +1,45 @@
 library(shiny)
 library(futile.logger)
 library(rlist)
+library(tidyverse)
 
-# the app should run both from the root directory and from R/
-if ("./R" %in% list.dirs(recursive = FALSE)){
-  source("R/page_home.R")
-  source("R/page_processData.R")
-  source("R/page_generateSampleDescription.R")
-  source("R/page_uploadData.R")
-  source("R/page_project.R")
-  source("R/global.R")
-  source("R/helpers_processDataWithPiccr.R")
-  source("R/helpers_createOrLoadProject.R")
-  source("R/helpers_goToTab.R")
-} else {
-  source("page_home.R")
-  source("page_processData.R")
-  source("page_generateSampleDescription.R")
-  source("page_uploadData.R")
-  source("page_project.R")
-  source("global.R")
-  source("helpers_processDataWithPiccr.R")
-  source("helpers_createOrLoadProject.R")
-  source("helpers_goToTab.R")
-}
+# ----------------- SOURCE SCRIPTS ----------------------
+# source all the files in the directory "R" that end in ".R" and 
+# are not "app.R". Should run from "R" and from the repository
+# root directory.
+
+codeDirectory <- if(dir.exists("R")) "R" else "."
+files <- list.files(codeDirectory, pattern = "*.R", full.names = TRUE)
+filesToSource <- files[!endsWith(files, "app.R")]
+walk(filesToSource, source)
+
+# ------------------ SET GLOBAL VARIABLES AND OPTIONS -----------
 
 # display all logging messages
 flog.threshold(DEBUG)
+
+# Use blue as style attribute to make blue buttons. Used by the modules.
+# Set in the global environment to avoid namespacing issues when
+# the modules try to access the variable.
+# Example usage: actionButton("id", "label", style = blue)
+assign(
+  "blue", 
+  "color: #fff; background-color: #337ab7; border-color: #2e6da4", 
+  envir = globalenv()
+)
+
+# The BASE_PATH is the path of the directory that contain s all the
+# application data. It is set in the file 'config.yaml'.
+# Note that the working directory may be "R" or the repository root
+# directory. Therefore the config path has to be determined dynamically.
+configPath <- if(file.exists("config.yaml")) "config.yaml" else file.path("..", "config.yaml")
+BASE_PATH <- list.load(configPath)$BASE_PATH
+
+# Initialize the directory structure. 
+# This is most useful when the app is run for the first time.
+setupDirectoryStructure(BASE_PATH)
+
+# ------------------ UI AND SERVER DEFINITIONS FOR THE APP -------------
 
 #' ui
 #' 
