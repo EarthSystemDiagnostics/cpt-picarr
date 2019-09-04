@@ -137,6 +137,12 @@ pageProcessData <- function(input, output, session, project, serverEnvironment){
     tryCatch({
         rv$processedData <- processDatasetsWithPiccr(datasetNames, input, project())
         rv$processingSuccessful <- TRUE
+        # save processed data on server
+        walk(names(rv$processedData), function(datasetName){
+          processedData <- rv$processedData[[datasetName]]$processed$data
+          outputPath <- file.path(BASE_PATH, project(), "data", datasetName, "processed.csv")
+          write_csv(processedData, outputPath)
+        })
         output$helpMessage <- renderText("Data processed successfully.")
       }, error = function(errorMessage) {
         output$helpMessage <- renderText("An error occured and the data could not be processed. 
@@ -283,15 +289,6 @@ pageProcessData <- function(input, output, session, project, serverEnvironment){
 getNamesOfDatasetsInProject <- function(project, basePath = BASE_PATH){
   
   list.dirs(file.path(basePath, project, "data"), recursive = FALSE, full.names = FALSE)
-}
-
-getPathToRawData <- function(name, project, basePath = BASE_PATH){
-  pathToDataFolder <- file.path(basePath, project, "data", name)
-  allCsvFilesInFolder <- list.files(pathToDataFolder, pattern = "*.csv")
-  fileName <- allCsvFilesInFolder[!allCsvFilesInFolder %in% c(
-    "processingOptions.csv", "sampleDescription.csv", "processed.csv")]
-  rawDataPath <- file.path(basePath, project, "data", name, fileName)
-  return(rawDataPath)
 }
 
 processDatasetsWithPiccr <- function(datasetNames, input, project){

@@ -29,9 +29,8 @@ pageProjectUI <- function(id){
       textOutput(ns("projDate"))
     ),
     wellPanel(
-      # TODO
       h3("Project Data"),
-      p("TODO")
+      uiOutput(ns("projectData"))
     ),
     wellPanel(
       h3("What do you want to do next?"),
@@ -77,32 +76,61 @@ pageProject <- function(input, output, session, project, serverEnvironment){
     goToTab("Upload measurement data", session, serverEnvironment)
   )
   
-  # ------------ REACT TO USER INPUT --------------
+  # ------------ RENDER OUTPUT --------------
   
-  # render output on the project page
+  # output project info
   observe({
     
     projectName <- project()
     req(projectName)
     
-    # display project information
     projectInfo           <- loadProjectInfo(projectName)
     output$projName       <- renderText(projectInfo$name)
     output$projPeople     <- renderText(projectInfo$people)
     output$projAdditional <- renderText(projectInfo$additionalInfo)
     output$projDate       <- renderText(projectInfo$date)
-    
-    # TODO: display project data
-    
   })
+  
+  
+  # display project data
+  output$projectData <- renderUI({
+    
+    projectName <- project()
+    req(projectName)
+    
+    projectData <- loadProjectData(projectName)
+    
+    # create dynamic number of output ui elements
+    uiElementsList <- map(projectData, ~{
+      processedPath <- file.path(BASE_PATH, projectName, "data", ., "processed.csv")
+      tagList(
+        hr(),
+        p(strong(.)),
+        p("raw data: ", getPathToRawData(., projectName)),
+        if(file.exists(processedPath)) p("processed: ", path) else p("")
+      )
+    })
+    tagList(uiElementsList)
+  })
+  
 }
 
-####################
+#######################
 # HELPERS
-####################
+#######################
 
 loadProjectInfo <- function(projectName, basePath = BASE_PATH){
   path <- file.path(basePath, projectName, "projectInfo.json")
   flog.debug(sprintf("loading project info: %s", path))
   rlist::list.load(path)
+}
+
+loadProjectData <- function(projectName, basePath = BASE_PATH){
+  
+  projectDataPath <- file.path(basePath, projectName, "data")
+  datasetNames <- list.files(projectDataPath, recursive = FALSE)
+  
+  flog.debug(sprintf("loading data info: %s", projectDataPath))
+  
+  return(datasetNames)
 }
