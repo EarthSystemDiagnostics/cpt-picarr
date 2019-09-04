@@ -35,6 +35,7 @@ uploadDataset <- function(input, project, basePath = BASE_PATH){
   file <- input$file
   name <- input$name
   
+  # exit early if required fields are missing
   if (!isTruthy(file)) return("You need to upload a file before clicking this button.")
   if (!isTruthy(name)) return("You need to name the dataset before clicking this button.")
   
@@ -43,12 +44,11 @@ uploadDataset <- function(input, project, basePath = BASE_PATH){
   
   data <- read_csv(filePath)
   uniqueIdentifier <- getUniqueIdentifer(data)
-  
-  if (is.na(uniqueIdentifier)) 
-    return(sprintf("Error: No unique identifier found in the uploaded dataset. (path: %s)", filePath))
-  
   optionsPath <- file.path(basePath, "processingOptions", uniqueIdentifier)
   
+  # exit early if unique identifier can't be found or no processing options are known for the unique identifier 
+  if (is.na(uniqueIdentifier)) 
+    return(sprintf("Error: No unique identifier found in the uploaded dataset. (path: %s)", filePath))
   if (dataIsMissing(optionsPath))
     return(sprintf("Error: Could not find processing options for the uploaded dataset. (unique id: %s)", uniqueIdentifier))
   
@@ -57,6 +57,7 @@ uploadDataset <- function(input, project, basePath = BASE_PATH){
   
   outputDir <- file.path(basePath, project, "data", name)
   
+  # exit early if the dataset name is already in use
   if (dir.exists(outputDir))
     return(sprintf("Upload aborted. A dataset with the same name exists already. (path: %s)", outputDir))
   
