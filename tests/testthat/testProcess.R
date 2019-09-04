@@ -1,15 +1,10 @@
 library(testthat)
 library(rhandsontable)
+library(readr)
 
 context("test the function processDataWithPiccr (calls piccr)")
 
 test_that("test output shape for function processDataWithPiccr", {
-  
-  basePath <- file.path(tempdir(), "outputTestProcess")
-  dir.create(basePath)
-  dir.create(file.path(basePath, "data", "123.456"), recursive = TRUE)
-  dir.create(file.path(basePath, "data", "abc.def"), recursive = TRUE)
-  on.exit(unlink(basePath, recursive = TRUE))
   
   processingTemplate <- tribble(
     ~`Identifier 1`, ~`Use for drift correction`, ~`Use for calibration`, ~`Use as control standard`, ~`True delta O18`, ~`True delta H2`,
@@ -20,21 +15,18 @@ test_that("test output shape for function processDataWithPiccr", {
     "JASE",              TRUE,                          TRUE,                     FALSE,                  -50.22,                 2,
     "NGT",               FALSE,                         FALSE,                    FALSE,                  -34.4,                 2
   )
-  write_csv(processingTemplate, file.path(basePath, "data", "123.456", "processingOptions.csv"))
-  write_csv(processingTemplate, file.path(basePath, "data", "abc.def", "processingOptions.csv"))
   
-  files <- list(
-    name = c("fileA", "fileB"),
-    datapath = c("test_data/HIDS2041_IsoWater_20151126_115726_with_suffix.csv", 
-                 "test_data/HIDS2041_IsoWater_20151125_111138_with_suffix.csv")
+  datasets <- list(
+    fileA = read_csv("test_data/HIDS2041_IsoWater_20151126_115726_with_suffix.csv"),
+    fileB = read_csv("test_data/HIDS2041_IsoWater_20151125_111138_with_suffix.csv")
   )
-  input <- list(
-    files = files,
-    useMemoryCorrection = TRUE,
-    driftAndCalibration = "1/T"
+  processingOptions <- list(
+    fileA = processingTemplate,
+    fileB = processingTemplate
   )
   
-  processedData <- processDataWithPiccr(input, basePath)
+  processedData <- processDataWithPiccr(datasets, processingOptions, useMemoryCorrection = T, 
+                                        calibrationFlag = 1, useThreePointCalibration = T)
   
   expect_length(processedData, 2)
   expect_equal(names(processedData), c("fileA", "fileB"))
