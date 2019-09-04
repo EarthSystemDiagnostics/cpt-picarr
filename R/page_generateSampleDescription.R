@@ -3,6 +3,13 @@ library(rhandsontable)
 library(tidyverse)
 library(futile.logger)
 
+#' pageGenerateSampleDescrUI
+#' 
+#' UI function for the page 'Generate a sample description'
+#'
+#' @param id Identifier for the namespace of this module
+#'
+#' @return A HTML tag object
 pageGenerateSampleDescrUI <- function(id){
   
   # create namespace function
@@ -42,8 +49,23 @@ pageGenerateSampleDescrUI <- function(id){
   )
 }
 
-# project is a reactive value
-pageGenerateSampleDescr <- function(input, output, session, project){
+#' pageGenerateSampleDescr
+#'
+#' Implements the server logic for the page 'Generate Sample Description'.
+#'
+#' @param input Shiny inputs
+#' @param output Shiny outputs
+#' @param session Shiny session
+#' @param project A reactive expression. 'project()' evaluates to a 
+#'                String -> the name of the currently loaded project
+#' @param serverEnvironment An environment. The environment of the 
+#'                          server function that calls this module.
+#'                          Used to execute code in the environment of the 
+#'                          main server function for the app (e.g. to 
+#'                          switch between pages).
+#'
+#' @return No explicit return value
+pageGenerateSampleDescr <- function(input, output, session, project, serverEnvironment){
   
   observeEvent(project(), {
     updateTemplateSelectionListSampleDescr(session, NULL, project())

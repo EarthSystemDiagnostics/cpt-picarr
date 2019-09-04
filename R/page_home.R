@@ -1,5 +1,13 @@
 library(shiny)
 
+
+#' pageHomeUI
+#' 
+#' UI function for the page 'Home'
+#'
+#' @param id Identifier for the namespace of this module
+#'
+#' @return A HTML tag object
 pageHomeUI <- function(id){
   
   # create namespace function
@@ -30,6 +38,34 @@ pageHomeUI <- function(id){
   )
 }
 
+#' pageHome
+#'
+#' Implements the server logic for the page 'Home'.
+#' 
+#' Note that this module modifies the environment that calls the 
+#' module (aka the serverEnvironment). Specifically the value 
+#' 'rv$project' is updated in the serverEnvironment when a project is
+#' loaded or a new project is created. 
+#' This means that a function that calls this module needs to define
+#' the variable rv as 'rv <- reactiveValues()'. Also the calling function
+#' should initialize rv$project: 'rv$project <- NULL'.
+#' The reason why this module modifies the calling function's environment
+#' is that the name of the currently loaded project is shared state
+#' between the different submodules (all pages need to know which project
+#' is loaded). Modifying a reactive value in the most high-level server 
+#' function makes it possible to propagate the state change to all other
+#' modules as a reactive expression.
+#'
+#' @param input Shiny inputs
+#' @param output Shiny outputs
+#' @param session Shiny session
+#' @param serverEnvironment An environment. The environment of the 
+#'                          server function that calls this module.
+#'                          Used to execute code in the environment of the 
+#'                          main server function for the app (e.g. to 
+#'                          switch between pages).
+#'
+#' @return No explicit return value
 pageHome <- function(input, output, session, serverEnvironment){
   
   updateProjectSelection(session)
