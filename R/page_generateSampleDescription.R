@@ -11,9 +11,6 @@ pageGenerateSampleDescrUI <- function(id){
   tagList(
     h2("Generate a sample description file"), br(),
     
-    p("Click this button before doing anything else:"),
-    actionButton(ns("loadTemplates"), "Load templates for the selected project", style = blue), p(""), br(),
-    
     wellPanel(
       h3("Create a sample description"),
       selectInput(ns("selectTemplateSampleDescr"), "Select a template", c()), p(""), br(),
@@ -48,9 +45,10 @@ pageGenerateSampleDescrUI <- function(id){
 # project is a reactive value
 pageGenerateSampleDescr <- function(input, output, session, project){
   
-  observeEvent(input$loadTemplates, {
+  observeEvent(project(), {
     updateTemplateSelectionListSampleDescr(session, NULL, project())
     updateTemplateSelectionListProcessing(session, NULL, project())
+    flog.debug(sprintf("loaded templates on page 'generate sample description' (project: %s)", project()))
   })
   
   
