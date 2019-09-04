@@ -13,7 +13,7 @@ pageProcessDataUI <- function(id){
     
     wellPanel(
       h4("Setup and Options"), br(),
-      fileInput(ns("files"), "Upload measurement files", multiple = TRUE),
+      selectizeInput(ns("datasetNames"), "Select one or more datasets to process", choices = c(), multiple = TRUE),
       radioButtons(ns("useMemoryCorrection"), "Use memory correction?", c("Yes" = TRUE, "No" = FALSE)),
       radioButtons(ns("driftAndCalibration"), "Drift correction and calibration options", 
                    choiceNames = list(
@@ -41,29 +41,83 @@ pageProcessDataUI <- function(id){
       uiOutput(ns("plots"))
     ),
     
-    # silently pass id to backend
+    # silently pass the given id to the server function
     conditionalPanel("false", textInput(ns("id"), label = "", value = id))
   )
 }
 
-pageProcessData <- function(input, output, session){
+pageProcessData <- function(input, output, session, project){
+  
+  # ---------------- INITIALIZATION -------------
   
   rv <- reactiveValues()
-  rv$rawData <- NULL
-  rv$processedData <- NULL
-  rv$processingSuccessful <- FALSE
+  rv$processedData <- NULL  # type: nested list (as output by processDatasetsWithPiccr)
+  rv$processingSuccessful <- FALSE  # type: logical
+  rv$datasetForPlottingRaw <- NULL  # type: data.frame
+  rv$datasetForPlottingProcessed <- NULL  # type: dat.frame
   
   # create a namespace function using the id passed by the frontend
   ns <- reactive(NS(isolate(input$id)))
   
+  # --------------- MANAGE STATE -------------
+  
+  # update the list of selectable datasets when a new project is loaded
+  observeEvent(project(), {
+    datasets <- getNamesOfDatasetsInProject(project())
+    updateSelectizeInput(session, "datasetNames", choices = datasets)
+    flog.debug(sprintf("updated dataset selection on page 'process data' (project : %s)", project()))
+  })
+  
+  # update rv$datasetForPlotting when a dataset is selected
+  observeEvent(input$datasetForPlotting, {
+    # update raw data
+    path <- getPathToRawData(input$datasetForPlotting, project())
+    rv$datasetForPlottingRaw <- read_csv(path)
+    flog.debug(sprintf("update rv$datasetForPlottingRaw. new dataset: %s", path))
+    
+    # update processed data
+    rv$datasetForPlottingProcessed <- rv$processedData[[input$datasetForPlotting]]$processed$data
+    flog.debug("update rv$datasetForPlottingProcessed")
+  })
+  
+  # --------------- RENDER PLOTS SECTION DYNAMICALLY --------------
+  
+  output$plots <- renderUI({
+    
+    if (!rv$processingSuccessful){
+      textOutput(ns()("plotsInfoMessage"))
+    } else {
+      tagList(
+        selectInput(ns()("datasetForPlotting"), "Which dataset would you like to plot?", choices = names(rv$processedData)),
+        actionButton(ns()("plotWaterLevel"), "water level"),
+        actionButton(ns()("plotStdDev"), "standard deviation"),
+        actionButton(ns()("plotDeviationForStandards"), "deviation from true value for standards"),
+        actionButton(ns()("plotRawData"), "raw data"),
+        actionButton(ns()("plotProcessedData"), "processed data"),
+        actionButton(ns()("plotRawVsProcessed"), "raw vs. processed"),
+        actionButton(ns()("plotMemory"), "memory"),
+        actionButton(ns()("plotCalibration"), "calibration"),
+        actionButton(ns()("plotDrift"), "drift"),
+        hr(),
+        uiOutput(ns()("plotOutput"))
+      )
+    }
+  })
+  
+  # --------------- REACT TO USER INPUT (PROCESSING AND DOWNLOAD) -------------------
+  
   observeEvent(input$doProcess, {
-    req(input$files)
+    
+    datasetNames <- input$datasetNames
+    req(datasetNames)
+    
     tryCatch({
-        rv$processedData <- processDataWithPiccr(input, BASE_PATH)
+        rv$processedData <- processDatasetsWithPiccr(datasetNames, input, project())
         rv$processingSuccessful <- TRUE
         output$helpMessage <- renderText("Data processed successfully.")
       }, error = function(errorMessage) {
-        output$helpMessage <- renderText("An error occured and the data could not be processed.")
+        output$helpMessage <- renderText("An error occured and the data could not be processed. 
+                                         See the logs for details.")
         flog.error(errorMessage)
       }
     )
@@ -77,31 +131,8 @@ pageProcessData <- function(input, output, session){
     }
   )
   
-  output$plots <- renderUI({
-    
-    ns <- ns()
-    
-    if (!rv$processingSuccessful){
-      textOutput(ns("plotsInfoMessage"))
-    } else {
-      tagList(
-        selectInput(ns("datasetForPlotting"), "Which dataset would you like to plot?", choices = input$files$name),
-        actionButton(ns("plotWaterLevel"), "water level"),
-        actionButton(ns("plotStdDev"), "standard deviation"),
-        actionButton(ns("plotDeviationForStandards"), "deviation from true value for standards"),
-        actionButton(ns("plotRawData"), "raw data"),
-        actionButton(ns("plotProcessedData"), "processed data"),
-        actionButton(ns("plotRawVsProcessed"), "raw vs. processed"),
-        actionButton(ns("plotMemory"), "memory"),
-        actionButton(ns("plotCalibration"), "calibration"),
-        actionButton(ns("plotDrift"), "drift"),
-        hr(),
-        uiOutput(ns("plotOutput"))
-      )
-    }
-    
-  })
-
+  # --------------- PLOTS ---------------------
+  
   output$plotsInfoMessage <- renderText("This section will contain plots and tables once you have processed some data.")
   
   # plot water level
@@ -110,9 +141,8 @@ pageProcessData <- function(input, output, session){
     output$plotOutput <- renderUI(plotOutput(ns()("plot")))
     
     # ---- server ----
-    data <- getRawData(input$datasetForPlotting, input$files)
     output$plot <- renderPlot({
-      ggplot(data, mapping = aes(x = Line, y = H2O_Mean)) + 
+      ggplot(rv$datasetForPlottingRaw, mapping = aes(x = Line, y = H2O_Mean)) + 
         geom_point()
     })
   })
@@ -123,8 +153,7 @@ pageProcessData <- function(input, output, session){
     output$plotOutput <- renderUI(plotOutput(ns()("plot")))
     
     # ---- server ----
-    datasetForPlotting <- input$datasetForPlotting
-    data <- rv$processedData[[datasetForPlotting]]$processed$data
+    data <- rv$datasetForPlottingProcessed
     
     # create y-axis labels
     data <- data %>% 
@@ -148,8 +177,7 @@ pageProcessData <- function(input, output, session){
     output$plotOutput <- renderUI(rHandsontableOutput(ns()("table")))
     
     # ---- server ----
-    data <- getRawData(input$datasetForPlotting, input$files)
-    output$table <- renderRHandsontable(rhandsontable(data))
+    output$table <- renderRHandsontable(rhandsontable(rv$datasetForPlottingRaw))
   })
   
   # plot processed measurement data
@@ -158,8 +186,7 @@ pageProcessData <- function(input, output, session){
     output$plotOutput <- renderUI(rHandsontableOutput(ns()("table")))
     
     # ---- server ----
-    datasetForPlotting <- input$datasetForPlotting
-    data <- rv$processedData[[datasetForPlotting]]$processed$data
+    data <- rv$datasetForPlottingProcessed
     
     # don't include identifer that was appended to column `Identifier 2`
     data <- mutate(data, `Identifier 2` = str_replace(`Identifier 2`, "_.+$", ""))
@@ -202,7 +229,7 @@ pageProcessData <- function(input, output, session){
     memoryCorrectedStandards <- memoryCorrected$datasetMemoryCorrected %>%
       mutate(type = "memory corrected") %>%
       filter(block == 1)
-    rawStandards <- getRawData(input$datasetForPlotting, input$files) %>% 
+    rawStandards <- rv$datasetForPlottingRaw %>% 
       mutate(type = "raw") %>%
       filter(Line %in% memoryCorrectedStandards$Line)
     mergedData <- bind_rows(rawStandards, memoryCorrectedStandards)
@@ -230,6 +257,54 @@ pageProcessData <- function(input, output, session){
 # HELPERS
 #######################
 
+getNamesOfDatasetsInProject <- function(project, basePath = BASE_PATH){
+  
+  list.dirs(file.path(basePath, project, "data"), recursive = FALSE, full.names = FALSE)
+}
+
+getPathToRawData <- function(name, project, basePath = BASE_PATH){
+  pathToDataFolder <- file.path(basePath, project, "data", name)
+  allCsvFilesInFolder <- list.files(pathToDataFolder, pattern = "*.csv")
+  fileName <- allCsvFilesInFolder[!allCsvFilesInFolder %in% c(
+    "processingOptions.csv", "sampleDescription.csv", "processed.csv")]
+  rawDataPath <- file.path(basePath, project, "data", name, fileName)
+  return(rawDataPath)
+}
+
+processDatasetsWithPiccr <- function(datasetNames, input, project){
+  
+  datasets <- loadSelectedDatasets(datasetNames, project)
+  processingOptions <- loadSelectedProcessingOptions(datasetNames, project)
+  
+  # input$driftAndCalibration is in the form "X/Y" where X is the calibration flag 
+  # and Y indicates whether to use three-point calibration or not
+  calibrationFlag <- as.numeric(str_split(input$driftAndCalibration, "/")[[1]][[1]])
+  useThreePointCalibration <- as.logical(str_split(input$driftAndCalibration, "/")[[1]][[2]])
+  
+  processedData <- processDataWithPiccr(datasets, processingOptions, input$useMemoryCorrection, 
+                                        calibrationFlag, useThreePointCalibration)
+  return(processedData)
+}
+
+loadSelectedDatasets <- function(selected, project, basePath = BASE_PATH){
+  
+  datasets <- map(selected, function(selected){
+    rawDataPath <- getPathToRawData(selected, project, basePath)
+    read_csv(rawDataPath)
+  })
+  names(datasets) <- selected
+  return(datasets)
+}
+
+loadSelectedProcessingOptions <- function(selected, project, basePath = BASE_PATH){
+  processingOptions <- map(selected, function(selected){
+    path <- file.path(basePath, project, "data", selected, "processingOptions.csv")
+    read_csv(path)
+  })
+  names(processingOptions) <- selected
+  return(processingOptions)
+}
+
 downloadProcessedData <- function(file, processedData){
   
   flog.info("Downloading data")
@@ -247,15 +322,4 @@ downloadProcessedData <- function(file, processedData){
   # zip does not override existing files
   file.remove(file)
   zip(file, filenames)
-}
-
-getRawData <- function(datasetName, files) {
-  datasetIndexInFileList <- which(files$name == datasetName)
-  pathToDataset <- files$datapath[[datasetIndexInFileList]]
-  data <- read_csv(pathToDataset)
-  
-  # don't include identifer that was appended to column `Identifier 2`
-  data <- mutate(data, `Identifier 2` = str_replace(`Identifier 2`, "_.+$", ""))
-  
-  return(data)
 }
