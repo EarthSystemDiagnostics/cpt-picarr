@@ -19,11 +19,6 @@ processDataWithPiccr <- function(datasets, processingOptions, useMemoryCorrectio
 
 generateConfig <- function(useMemoryCorrection, calibrationFlag, useThreePointCalibration){
   
-  # input$driftAndCalibration is in the form "X/Y" where X is the calibration flag 
-  # and Y indicates whether to use three-point calibration or not
-  # calibrationMethod <- as.numeric(str_split(input$driftAndCalibration, "/")[[1]][[1]])
-  # useThreePointCalibration <- as.logical(str_split(input$driftAndCalibration, "/")[[1]][[2]])
-  
   config <- list(
     average_over_last_n_inj = 3,
     use_memory_correction = useMemoryCorrection,
