@@ -34,6 +34,8 @@ assign(
 # directory. Therefore the config path has to be determined dynamically.
 configPath <- if(file.exists("config.yaml")) "config.yaml" else file.path("..", "config.yaml")
 BASE_PATH <- list.load(configPath)$BASE_PATH
+# set BASE_PATH in global environemnt to prevent namespacing issues
+assign("BASE_PATH", BASE_PATH, envir = globalenv())
 
 # Initialize the directory structure. 
 # This is most useful when the app is run for the first time.
