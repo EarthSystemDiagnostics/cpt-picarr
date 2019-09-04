@@ -70,7 +70,7 @@ server <- function(input, output, session){
   callModule(pageProject, "project", project = project, serverEnvironment = ownEnvir)
   callModule(pageGenerateSampleDescr, "sampleDescription", project = project)
   callModule(pageUploadData, "uploadData", project = project)
-  callModule(pageProcessData, "processData")
+  callModule(pageProcessData, "processData", project = project)
   
 }
 
