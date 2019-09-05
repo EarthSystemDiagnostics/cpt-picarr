@@ -7,12 +7,12 @@ context("test function downloadSampleDescr")
 test_that("test", {
   
   data <- tribble(
-    ~`Identifier 1`, ~`Identifier 2`, ~Tray, ~colA,
+    ~`Identifier 1`, ~`Identifier 2`, ~tray, ~colA,
     "abc",           NA,              1,     "x",
     "xyz",           "abc",           2,     4 
   )
   dataExpected <- tribble(
-    ~`Rack Pos.`, ~`Identifier 1`, ~`Identifier 2`,       ~Tray,
+    ~vial, ~`Identifier 1`, ~`Identifier 2`,       ~tray,
     1,            "abc",           "_3456ftjzgk.4536",    1,
     2,            "xyz",           "abc_3456ftjzgk.4536", 2
   )
