@@ -44,7 +44,8 @@ pageGenerateSampleDescrUI <- function(id){
     
     wellPanel(
       h3("All done?"),
-      downloadButton(ns("download"), "Download sample description", style = blue)
+      downloadButton(ns("download"), "Download sample description", style = blue),
+      textOutput(ns("helpMessageDownload"))
     )
   )
 }
@@ -160,6 +161,10 @@ pageGenerateSampleDescr <- function(input, output, session, project, serverEnvir
     uniqueIdentifier <- rv$uniqueIdentifier
     
     saveOnServer(sampleDescr, processingOptions, uniqueIdentifier)
+    
+    # display sucess message
+    output$helpMessageDownload <- renderText(sprintf(
+      "Sample description and processing options saved on server. Unique identifier: %s", uniqueIdentifier))
   })
 }
 
@@ -221,7 +226,7 @@ buildHandsontableSampleDescr <- function(data){
     hot_col(col = "Identifier 1", type = "text") %>%
     hot_col(col = "Identifier 2", type = "text") %>%
     hot_col(col = "Is standard?", type = "checkbox") %>%
-    hot_col(col = "Tray", type = "dropdown", source = 1:2)
+    hot_col(col = "tray", type = "dropdown", source = 1:2)
 }
 
 buildHandsontableProcessing <- function(data){
@@ -246,10 +251,10 @@ downloadSampleDescr <- function(data, file, uniqueIdentifier){
   flog.debug(str_c("Unique identifier: ", uniqueIdentifier))
   
   data <- data %>%
-    select(`Identifier 1`, `Identifier 2`, `Tray`) %>%
+    select(`Identifier 1`, `Identifier 2`, tray) %>%
     mutate(`Identifier 2` = str_replace_na(`Identifier 2`, replacement = "")) %>%
     mutate(`Identifier 2` = str_c(`Identifier 2`, "_", uniqueIdentifier)) %>%
-    rowid_to_column("Rack Pos.")
+    rowid_to_column("vial")
   
   write_csv(data, file)
 }
@@ -278,7 +283,7 @@ processingOptionsInitial <- tribble(
 )
 
 emptySampleDescr <- tribble(
-  ~`Identifier 1`, ~`Identifier 2`, ~Tray, ~`Is standard?`, 
+  ~`Identifier 1`, ~`Identifier 2`, ~tray, ~`Is standard?`, 
   "",              "",              1,     F,
   "",              "",              1,     F,
   "",              "",              1,     F,

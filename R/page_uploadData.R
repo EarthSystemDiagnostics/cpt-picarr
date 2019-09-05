@@ -70,8 +70,8 @@ uploadDataset <- function(input, project, basePath = BASE_PATH){
   optionsPath <- file.path(basePath, "processingOptions", uniqueIdentifier)
   
   # exit early if unique identifier can't be found or no processing options are known for the unique identifier 
-  if (is.na(uniqueIdentifier)) 
-    return(sprintf("Error: No unique identifier found in the uploaded dataset. (path: %s)", filePath))
+  if (!isTruthy(uniqueIdentifier)) 
+    return("Error: No unique identifier found in the uploaded dataset.")
   if (dataIsMissing(optionsPath))
     return(sprintf("Error: Could not find processing options for the uploaded dataset. (unique id: %s)", uniqueIdentifier))
   
@@ -87,7 +87,8 @@ uploadDataset <- function(input, project, basePath = BASE_PATH){
   saveData(outputDir, data, fileName, processingOptions, sampleDescription)
   saveAdditionalInfo(outputDir, input$info)
   
-  return(sprintf("Dataset sucessfully uploaded. (The uploaded data is in %s)", outputDir))
+  return(sprintf("Dataset sucessfully uploaded. Processing Options and 
+                 sample descriptions were found. (The data is in %s)", outputDir))
   
 }
 
