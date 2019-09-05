@@ -107,7 +107,7 @@ pageProject <- function(input, output, session, project, serverEnvironment){
         hr(),
         p(strong(.)),
         p("raw data: ", getPathToRawData(., projectName)),
-        if(file.exists(processedPath)) p("processed: ", path) else p("")
+        if(file.exists(processedPath)) p("processed: ", processedPath) else p("")
       )
     })
     tagList(uiElementsList)
