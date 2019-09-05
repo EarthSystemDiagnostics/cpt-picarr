@@ -114,11 +114,12 @@ pageProcessData <- function(input, output, session, project, serverEnvironment){
         selectInput(ns()("datasetForPlotting"), "Which dataset would you like to plot?", choices = names(rv$processedData)),
         actionButton(ns()("plotWaterLevel"), "water level"),
         actionButton(ns()("plotStdDev"), "standard deviation"),
-        actionButton(ns()("plotRawData"), "raw data"),
+        actionButton(ns()("tableRawData"), "raw data (as table)"),
         actionButton(ns()("plotProcessedData"), "processed data"),
         actionButton(ns()("plotMemory"), "memory"),
         p("Not yet implemented:"),
         actionButton(ns()("plotDeviationForStandards"), "deviation from true value for standards"),
+        actionButton(ns()("plotRawData"), "raw data (as plot)"),
         actionButton(ns()("plotRawVsProcessed"), "raw vs. processed"),
         actionButton(ns()("plotCalibration"), "calibration"),
         actionButton(ns()("plotDrift"), "drift"),
@@ -202,7 +203,7 @@ pageProcessData <- function(input, output, session, project, serverEnvironment){
   })
   
   # plot raw measurement data
-  observeEvent(input$plotRawData, {
+  observeEvent(input$tableRawData, {
     # ---- ui ----
     output$plotOutput <- renderUI(rHandsontableOutput(ns()("table")))
     
