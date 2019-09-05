@@ -4,7 +4,7 @@ library(rlist)
 library(tidyverse)
 
 # ----------------- SOURCE SCRIPTS ----------------------
-# source all the files in the directory "R" that end in ".R" and 
+# Source all the files in the directory "R" that end in ".R" and 
 # are not "app.R". Should run from "R" and from the repository
 # root directory.
 
@@ -28,7 +28,9 @@ assign(
   envir = globalenv()
 )
 
-# The BASE_PATH is the path of the directory that contain s all the
+# Set the BASE_PATH
+#
+# The BASE_PATH is the path to the directory that contains all the
 # application data. It is set in the file 'config.yaml'.
 # Note that the working directory may be "R" or the repository root
 # directory. Therefore the config path has to be determined dynamically.
@@ -39,7 +41,7 @@ assign("BASE_PATH", BASE_PATH, envir = globalenv())
 
 # Initialize the directory structure. 
 # This is most useful when the app is run for the first time.
-setupDirectoryStructure(BASE_PATH)
+dir.create(file.path(BASE_PATH, "processingOptions"), recursive = TRUE, showWarnings = FALSE)
 
 # ------------------ UI AND SERVER DEFINITIONS FOR THE APP -------------
 
