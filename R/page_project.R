@@ -28,9 +28,19 @@ pageProjectUI <- function(id){
       p(strong("Expedition date:")),
       textOutput(ns("projDate"))
     ),
+
     wellPanel(
+      style = "height: 580px",
       h3("Project Data"),
-      uiOutput(ns("projectData"))
+      
+      conditionalPanel("true",
+        # add CSS to make panel scrollable to reduce vertical size
+        style = "overflow-y:scroll; height: 420px",
+        uiOutput(ns("projectData"))
+      ), 
+      br(),
+      
+      actionButton(ns("downloadAllData"), "Download all project data")
     ),
     wellPanel(
       h3("What do you want to do next?"),
@@ -104,6 +114,7 @@ pageProject <- function(input, output, session, project, serverEnvironment){
     uiElementsList <- map2(projectData, names(projectData), ~{
       wellPanel(
         p(strong(.y)),
+        # Only output attributes if they are given in projectData
         if(isTruthy(.x$path))           p("path: ", .x$path),
         if(isTruthy(.x$raw))            p("raw data: ", .x$raw),
         if(isTruthy(.x$date))           p("date measured: ", .x$date),
