@@ -137,21 +137,20 @@ pageProcessData <- function(input, output, session, project, serverEnvironment){
     req(datasetNames)
     
     tryCatch({
-        rv$processedData <- processDatasetsWithPiccr(datasetNames, input, project())
-        rv$processingSuccessful <- TRUE
-        # save processed data on server
-        walk(names(rv$processedData), function(datasetName){
-          processedData <- rv$processedData[[datasetName]]$processed$data
-          outputPath <- file.path(BASE_PATH, project(), "data", datasetName, "processed.csv")
-          write_csv(processedData, outputPath)
-        })
-        output$helpMessage <- renderText("Data processed successfully.")
-      }, error = function(errorMessage) {
-        output$helpMessage <- renderText("An error occured and the data could not be processed. 
-                                         See the logs for details.")
-        flog.error(errorMessage)
-      }
-    )
+        
+      rv$processedData <- processDatasetsWithPiccr(datasetNames, input, project())
+      rv$processingSuccessful <- TRUE
+  
+      saveProcessedDataOnServer(rv$processedData, project())
+      
+      output$helpMessage <- renderText("Data processed successfully. Processed data saved on server.")
+    
+    }, error = function(errorMessage) {
+      
+      output$helpMessage <- renderText("An error occured and the data could not be processed. 
+                                       See the logs for details.")
+      flog.error(errorMessage)
+    })
   })
   
   output$download <- downloadHandler(
@@ -306,6 +305,17 @@ processDatasetsWithPiccr <- function(datasetNames, input, project){
   processedData <- processDataWithPiccr(datasets, processingOptions, input$useMemoryCorrection, 
                                         calibrationFlag, useThreePointCalibration)
   return(processedData)
+}
+
+saveProcessedDataOnServer <- function(processedData, project, basePath = BASE_PATH){
+  
+  datasetNames <- names(processedData)
+  walk(datasetNames, function(datasetName){
+    processedData <- processedData[[datasetName]]$processed$data
+    outputDir <- file.path(basePath, project, "data", datasetName)
+    dir.create(outputDir)
+    write_csv(processedData, file.path(outputDir, "processed.csv"))
+  })
 }
 
 loadSelectedDatasets <- function(selected, project, basePath = BASE_PATH){
