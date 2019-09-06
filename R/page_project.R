@@ -136,9 +136,14 @@ pageProject <- function(input, output, session, project, serverEnvironment, proj
     filename = sprintf("data.zip", project()),
     content = function(file){
       flog.debug("Downloading all project data. Project: %s", project())
+      
       projectDataPath <- file.path(BASE_PATH, project(), "data")
-      filesToZip <- list.files(projectDataPath, recursive = TRUE, full.names = TRUE)
-      flog.debug("Downloading files: %s", paste(filesToZip, collapse = ", "))
+      filesToZip <- list.files(projectDataPath, recursive = TRUE)
+      
+      # Zip file should contain paths relative to the project data directory
+      owd <- setwd(projectDataPath)
+      on.exit(setwd(owd))
+
       zip(file, filesToZip)
     }
   )
