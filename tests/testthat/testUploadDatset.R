@@ -76,7 +76,11 @@ test_that("upload data and fetching processing options", {
     read_csv(file.path(outputDir, "processingOptions.csv")),
     processingOptions
   )
-  expect_equal(messageActual, sprintf("Dataset sucessfully uploaded. (The uploaded data is in %s)", outputDir))
+  expect_equal(
+    messageActual, 
+    sprintf("Dataset sucessfully uploaded. Processing Options and 
+                 sample descriptions were found. (The data is in %s)", outputDir)
+  )
   expect_equal(
     read_csv(file.path(outputDir, "file name")),
     tibble(`Identifier 2` = c(NA, "a"), colA = c(1.2, 4.6))
@@ -131,7 +135,7 @@ test_that("no unique identifier in uploaded dataset", {
     info = "some info"
   )
   
-  messageExpected <- sprintf("Error: No unique identifier found in the uploaded dataset. (path: %s)", filePath)
+  messageExpected <- "Error: No unique identifier found in the uploaded dataset."
   
   messageActual <- uploadDataset(input, "Project A", basePath)
   
