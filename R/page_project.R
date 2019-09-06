@@ -40,7 +40,7 @@ pageProjectUI <- function(id){
       ), 
       br(),
       
-      actionButton(ns("downloadAllData"), "Download all project data")
+      downloadButton(ns("downloadAllData"), "Download all project data")
     ),
     wellPanel(
       h3("What do you want to do next?"),
@@ -67,9 +67,11 @@ pageProjectUI <- function(id){
 #'                          Used to execute code in the environment of the 
 #'                          main server function for the app (e.g. to 
 #'                          switch between pages).
+#' @param projectDataChanged A reactive expression. Used to trigger an update of 
+#'                           the displayed project data when the project data changes. 
 #'
 #' @return No explicit return value
-pageProject <- function(input, output, session, project, serverEnvironment){
+pageProject <- function(input, output, session, project, serverEnvironment, projectDataChanged){
   
   # ------------ NAVIGATION BETWEEN PAGES -----------
   
@@ -105,6 +107,9 @@ pageProject <- function(input, output, session, project, serverEnvironment){
   # display project data
   output$projectData <- renderUI({
     
+    # make this output depend on the reactive expression projectDataChanged
+    force(projectDataChanged()) 
+    
     projectName <- project()
     req(projectName)
     
@@ -125,6 +130,18 @@ pageProject <- function(input, output, session, project, serverEnvironment){
     tagList(uiElementsList)
   })
   
+  # ------------- DOWNLOAD DATA -------------------
+  
+  output$downloadAllData <- downloadHandler(
+    filename = sprintf("data.zip", project()),
+    content = function(file){
+      flog.debug("Downloading all project data. Project: %s", project())
+      projectDataPath <- file.path(BASE_PATH, project(), "data")
+      filesToZip <- list.files(projectDataPath, recursive = TRUE, full.names = TRUE)
+      flog.debug("Downloading files: %s", paste(filesToZip, collapse = ", "))
+      zip(file, filesToZip)
+    }
+  )
 }
 
 #######################
@@ -133,7 +150,7 @@ pageProject <- function(input, output, session, project, serverEnvironment){
 
 loadProjectInfo <- function(projectName, basePath = BASE_PATH){
   path <- file.path(basePath, projectName, "projectInfo.json")
-  flog.debug(sprintf("loading project info: %s", path))
+  flog.debug("loading project info: %s", path)
   rlist::list.load(path)
 }
 
@@ -153,7 +170,7 @@ loadProjectInfo <- function(projectName, basePath = BASE_PATH){
 loadProjectData <- function(project, basePath = BASE_PATH){
   
   projectDataPath <- file.path(basePath, project, "data")
-  flog.debug(sprintf("loading data info: %s", projectDataPath))
+  flog.debug("loading data info: %s", projectDataPath)
   
   datasetNames <- list.files(projectDataPath, recursive = FALSE)
   

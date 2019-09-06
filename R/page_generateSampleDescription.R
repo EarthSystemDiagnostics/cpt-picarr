@@ -73,7 +73,7 @@ pageGenerateSampleDescr <- function(input, output, session, project, serverEnvir
   observeEvent(project(), {
     updateTemplateSelectionListSampleDescr(session, NULL, project())
     updateTemplateSelectionListProcessing(session, NULL, project())
-    flog.debug(sprintf("loaded templates on page 'generate sample description' (project: %s)", project()))
+    flog.debug("loaded templates on page 'generate sample description' (project: %s)", project())
   })
   
   
@@ -186,7 +186,7 @@ saveNewTemplate <- function(data, name, project, mode = "sampleDescription", bas
   templateDir <- file.path(basePath, project, "templates", mode)
   file <- file.path(templateDir, name)
   
-  flog.debug(sprintf("saving new template to %s", file))
+  flog.debug("saving new template to %s", file)
   
   dir.create(templateDir, recursive = TRUE)
   write_csv(data, file)

@@ -48,6 +48,9 @@ pageUploadData <- function(input, output, session, project, serverEnvironment){
   observeEvent(input$upload, {
     message <- uploadDataset(input, project())
     output$helpMessage <- renderText(message)
+    
+    # signal to other modules that the project data has been changed
+    evalq(rv$projectDataChanged <- rv$projectDataChanged + 1, envir = serverEnvironment)
   })
   
   observeEvent(input$goToPageProject,goToTab("Project", session, serverEnvironment))
@@ -93,7 +96,6 @@ uploadDataset <- function(input, project, basePath = BASE_PATH){
   
   return(sprintf("Dataset sucessfully uploaded. Processing Options and 
                  sample descriptions were found. (The data is in %s)", outputDir))
-  
 }
 
 getUniqueIdentifer <- function(dataset){

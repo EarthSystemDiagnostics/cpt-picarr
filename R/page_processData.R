@@ -87,7 +87,7 @@ pageProcessData <- function(input, output, session, project, serverEnvironment){
   observeEvent(project(), {
     datasets <- getNamesOfDatasetsInProject(project())
     updateSelectizeInput(session, "datasetNames", choices = datasets)
-    flog.debug(sprintf("updated dataset selection on page 'process data' (project : %s)", project()))
+    flog.debug("updated dataset selection on page 'process data' (project : %s)", project())
   })
   
   # update rv$datasetForPlotting when a dataset is selected
@@ -95,7 +95,7 @@ pageProcessData <- function(input, output, session, project, serverEnvironment){
     # update raw data
     path <- getPathToRawData(input$datasetForPlotting, project())
     rv$datasetForPlottingRaw <- read_csv(path)
-    flog.debug(sprintf("update rv$datasetForPlottingRaw. new dataset: %s", path))
+    flog.debug("update rv$datasetForPlottingRaw. new dataset: %s", path)
     
     # update processed data
     rv$datasetForPlottingProcessed <- rv$processedData[[input$datasetForPlotting]]$processed$data

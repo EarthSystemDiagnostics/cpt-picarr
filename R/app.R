@@ -99,15 +99,17 @@ server <- function(input, output, session){
   # Reactive value that should be set by the submodules in order to
   # realize shared state between those modules.
   rv$project <- NULL
+  rv$projectDataChanged <- NULL
   
   # reactive expression to pass to modules
   project <- reactive({rv$project})
+  projectDataChanged <- reactive({rv$projectDataChanged})
   
   # ------------- CALL MODULES -------------
   
   ownEnvir <- environment()
   callModule(pageHome, "home", serverEnvironment = ownEnvir)
-  callModule(pageProject, "project", project = project, serverEnvironment = ownEnvir)
+  callModule(pageProject, "project", project = project, serverEnvironment = ownEnvir, projectDataChanged = projectDataChanged)
   callModule(pageGenerateSampleDescr, "sampleDescription", project = project, serverEnvironment = ownEnvir)
   callModule(pageUploadData, "uploadData", project = project, serverEnvironment = ownEnvir)
   callModule(pageProcessData, "processData", project = project, serverEnvironment = ownEnvir)
