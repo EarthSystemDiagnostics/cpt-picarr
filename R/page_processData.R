@@ -66,9 +66,11 @@ pageProcessDataUI <- function(id){
 #'                          Used to execute code in the environment of the 
 #'                          main server function for the app (e.g. to 
 #'                          switch between pages).
+#' @param projectDataChanged A reactive expression. Used to trigger an update of 
+#'                           the displayed project data when the project data changes. 
 #'
 #' @return No explicit return value
-pageProcessData <- function(input, output, session, project, serverEnvironment){
+pageProcessData <- function(input, output, session, project, serverEnvironment, projectDataChanged){
   
   # ---------------- INITIALIZE STATE -------------
   
@@ -84,7 +86,7 @@ pageProcessData <- function(input, output, session, project, serverEnvironment){
   # --------------- MANAGE STATE -------------
   
   # update the list of selectable datasets when a new project is loaded
-  observeEvent(project(), {
+  observeEvent({project(); projectDataChanged()}, {
     datasets <- getNamesOfDatasetsInProject(project())
     updateSelectizeInput(session, "datasetNames", choices = datasets)
     flog.debug("updated dataset selection on page 'process data' (project : %s)", project())
