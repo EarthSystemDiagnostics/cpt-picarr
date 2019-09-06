@@ -21,7 +21,9 @@ pageUploadDataUI <- function(id){
       textAreaInput(ns("info"), "Information about the dataset (optional)"), br(),
       actionButton(ns("upload"), "Upload the dataset", style = blue),
       textOutput(ns("helpMessage"))
-    )
+    ),
+    
+    actionButton(ns("goToPageProject"), "Back to page 'Project'")
   )
 }
 
@@ -47,6 +49,8 @@ pageUploadData <- function(input, output, session, project, serverEnvironment){
     message <- uploadDataset(input, project())
     output$helpMessage <- renderText(message)
   })
+  
+  observeEvent(input$goToPageProject,goToTab("Project", session, serverEnvironment))
 }
 
 ##################

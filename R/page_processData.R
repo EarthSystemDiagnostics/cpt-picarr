@@ -38,15 +38,14 @@ pageProcessDataUI <- function(id){
       actionButton(ns("doProcess"), "Process the data", style = blue),
       downloadButton(ns("download"), "Download the processed data"),
       textOutput(ns("helpMessage"))
-      
-      # TODO: implement save on server
-      # actionButton(ns("doSave"), "Save the processed data on the server")
     ),
     
     wellPanel(
       h4("Plots and tables"),
       uiOutput(ns("plots"))
     ),
+    
+    actionButton(ns("goToPageProject"), "Back to page 'Project'"),
     
     # silently pass the given id to the server function
     conditionalPanel("false", textInput(ns("id"), label = "", value = id))
@@ -160,6 +159,8 @@ pageProcessData <- function(input, output, session, project, serverEnvironment){
       downloadProcessedData(file, processedData)
     }
   )
+  
+  observeEvent(input$goToPageProject,goToTab("Project", session, serverEnvironment))
   
   # --------------- PLOTS ---------------------
   

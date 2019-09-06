@@ -46,7 +46,9 @@ pageGenerateSampleDescrUI <- function(id){
       h3("All done?"),
       downloadButton(ns("download"), "Download sample description", style = blue),
       textOutput(ns("helpMessageDownload"))
-    )
+    ),
+    
+    actionButton(ns("goToPageProject"), "Back to page 'Project'")
   )
 }
 
@@ -166,6 +168,10 @@ pageGenerateSampleDescr <- function(input, output, session, project, serverEnvir
     output$helpMessageDownload <- renderText(sprintf(
       "Sample description and processing options saved on server. Unique identifier: %s", uniqueIdentifier))
   })
+  
+  # ------- GO BACK TO PAGE PROJECT ----------
+  
+  observeEvent(input$goToPageProject,goToTab("Project", session, serverEnvironment))
 }
 
 ######################################
