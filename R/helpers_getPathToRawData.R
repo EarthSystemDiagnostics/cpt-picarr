@@ -1,4 +1,4 @@
-getPathToRawData <- function(name, project, basePath = BASE_PATH){
+getPathToRawData <- function(name, project, basePath = BASE_PATH, fullPath = TRUE){
   
   pathToDataFolder <- file.path(basePath, project, "data", name)
   
@@ -6,7 +6,9 @@ getPathToRawData <- function(name, project, basePath = BASE_PATH){
   fileName <- allCsvFilesInFolder[!allCsvFilesInFolder %in% c(
     "processingOptions.csv", "sampleDescription.csv", "processed.csv")]
   
-  rawDataPath <- file.path(basePath, project, "data", name, fileName)
-  
-  return(rawDataPath)
+  if (fullPath) {
+    return(file.path(basePath, project, "data", name, fileName))
+  } else {
+    return(fileName)
+  }
 }
