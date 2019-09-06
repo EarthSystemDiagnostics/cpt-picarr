@@ -101,13 +101,14 @@ pageProject <- function(input, output, session, project, serverEnvironment){
     projectData <- loadProjectData(projectName)
     
     # create dynamic number of output ui elements
-    uiElementsList <- map(projectData, ~{
-      processedPath <- file.path(BASE_PATH, projectName, "data", ., "processed.csv")
-      tagList(
-        hr(),
-        p(strong(.)),
-        p("raw data: ", getPathToRawData(., projectName)),
-        if(file.exists(processedPath)) p("processed: ", processedPath) else p("")
+    uiElementsList <- map2(projectData, names(projectData), ~{
+      wellPanel(
+        p(strong(.y)),
+        if(isTruthy(.x$path))           p("path: ", .x$path),
+        if(isTruthy(.x$raw))            p("raw data: ", .x$raw),
+        if(isTruthy(.x$date))           p("date measured: ", .x$date),
+        if(isTruthy(.x$processed))      p("processed data: ", .x$processed),
+        if(isTruthy(.x$additionalInfo)) p("additional info: ", .x$additionalInfo)
       )
     })
     tagList(uiElementsList)
