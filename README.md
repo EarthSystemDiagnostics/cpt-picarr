@@ -1,6 +1,7 @@
 # Cpt-Picarr
 
 [![Build Status](https://travis-ci.org/EarthSystemDiagnostics/cpt-picarr.svg?branch=master)](https://travis-ci.org/EarthSystemDiagnostics/cpt-picarr)
+![Lifecycle](https://img.shields.io/badge/lifecycle-experimental-orange)
 
 Take a look at the basic UI prototype: https://twollnik.shinyapps.io/cpt_picarr/ 
 
