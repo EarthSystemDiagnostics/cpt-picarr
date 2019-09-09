@@ -142,6 +142,9 @@ pageProcessData <- function(input, output, session, project, serverEnvironment, 
     datasetNames <- input$datasetNames
     req(datasetNames)
     
+    # When doing consecutive runs, the help message should "reappear" for each run
+    output$helpMessage <- renderText("")
+    
     tryCatch({
         
       rv$processedData <- processDatasetsWithPiccr(datasetNames, input, project())
