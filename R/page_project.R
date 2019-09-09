@@ -90,6 +90,11 @@ pageProject <- function(input, output, session, project, serverEnvironment, proj
   
   # ------------ RENDER OUTPUT --------------
   
+  # project name is page header
+  output$header <- renderUI({
+    h2("Project: ", project())
+  })
+  
   # output project info
   observe({
     

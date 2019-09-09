@@ -17,6 +17,7 @@ pageProcessDataUI <- function(id){
   
   tagList(
     h2("Process isotope measurement data"),
+    textOutput(ns("projectName")), br(),
     
     wellPanel(
       h4("Setup and Options"), br(),
@@ -85,10 +86,12 @@ pageProcessData <- function(input, output, session, project, serverEnvironment, 
   
   # --------------- MANAGE STATE -------------
   
+  # display currently loaded project
+  output$projectName <- renderText(sprintf("Project: %s", project()))
+  
   # update the list of selectable datasets when a new 
   # project is loaded or a dataset is uploaded.
   observe({
-    
     # add dependency on the reactive expression projectDataChanged
     force(projectDataChanged()) 
     

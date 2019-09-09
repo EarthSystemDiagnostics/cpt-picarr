@@ -16,7 +16,8 @@ pageGenerateSampleDescrUI <- function(id){
   ns <- NS(id)
   
   tagList(
-    h2("Generate a sample description file"), br(),
+    h2("Generate a sample description file"), 
+    textOutput(ns("projectName")), br(),
     
     wellPanel(
       h3("Create a sample description"),
@@ -70,13 +71,6 @@ pageGenerateSampleDescrUI <- function(id){
 #' @return No explicit return value
 pageGenerateSampleDescr <- function(input, output, session, project, serverEnvironment){
   
-  observeEvent(project(), {
-    updateTemplateSelectionListSampleDescr(session, NULL, project())
-    updateTemplateSelectionListProcessing(session, NULL, project())
-    flog.debug("loaded templates on page 'generate sample description' (project: %s)", project())
-  })
-  
-  
   # -------- REACTIVE VALUES -----------------
   
   rv <- reactiveValues()
@@ -86,6 +80,18 @@ pageGenerateSampleDescr <- function(input, output, session, project, serverEnvir
   # Used to match measurement data with its sample description and processing template.
   # Is appended to Identifer 2 to preserve through the measurement process.
   rv$uniqueIdentifier <- NULL
+  
+  # --------  UPDATE TEMPLATES -----------
+  
+  observeEvent(project(), {
+    updateTemplateSelectionListSampleDescr(session, NULL, project())
+    updateTemplateSelectionListProcessing(session, NULL, project())
+    flog.debug("loaded templates on page 'generate sample description' (project: %s)", project())
+  })
+  
+  # -------- DISPLAY CURRENT PROJECT ------------
+  
+  output$projectName <- renderText(sprintf("Project: %s", project()))
   
   # -------- SAMPLE DESCRIPTION ----------------
   

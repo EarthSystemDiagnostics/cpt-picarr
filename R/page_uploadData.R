@@ -13,7 +13,8 @@ pageUploadDataUI <- function(id){
   ns <- NS(id)
   
   tagList(
-    h2("Upload measurement data"), br(),
+    h2("Upload measurement data"), 
+    textOutput(ns("projectName")), br(),
     
     wellPanel(
       fileInput(ns("file"), "Select a file to upload"),
@@ -44,6 +45,9 @@ pageUploadDataUI <- function(id){
 #'
 #' @return No explicit return value
 pageUploadData <- function(input, output, session, project, serverEnvironment){
+  
+  # display currently loaded project
+  output$projectName <- renderText(sprintf("Project: %s", project()))
   
   # auto fill in name field when file is uploaded
   observeEvent(input$file, {
