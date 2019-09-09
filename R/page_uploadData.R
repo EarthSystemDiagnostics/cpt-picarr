@@ -45,6 +45,11 @@ pageUploadDataUI <- function(id){
 #' @return No explicit return value
 pageUploadData <- function(input, output, session, project, serverEnvironment){
   
+  # auto fill in name field when file is uploaded
+  observeEvent(input$file, {
+    updateTextInput(session, "name", value = input$file$name)
+  })
+  
   observeEvent(input$upload, {
     message <- uploadDataset(input, project())
     output$helpMessage <- renderText(message)
