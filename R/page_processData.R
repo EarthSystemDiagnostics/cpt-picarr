@@ -85,8 +85,13 @@ pageProcessData <- function(input, output, session, project, serverEnvironment, 
   
   # --------------- MANAGE STATE -------------
   
-  # update the list of selectable datasets when a new project is loaded
-  observeEvent({project(); projectDataChanged()}, {
+  # update the list of selectable datasets when a new 
+  # project is loaded or a dataset is uploaded.
+  observe({
+    
+    # add dependency on the reactive expression projectDataChanged
+    force(projectDataChanged()) 
+    
     datasets <- getNamesOfDatasetsInProject(project())
     updateSelectizeInput(session, "datasetNames", choices = datasets)
     flog.debug("updated dataset selection on page 'process data' (project : %s)", project())
