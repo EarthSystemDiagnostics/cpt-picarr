@@ -1,6 +1,6 @@
 library(tidyverse)
 
-downloadProcessedDataAsZip <- function(project, outputFile, basePath){
+downloadProcessedDataAsZip <- function(project, outputFile, basePath = BASE_PATH){
   
   # temp dir to store processed data for zipping
   temp <- "tempDirForZipping"
@@ -20,4 +20,19 @@ downloadProcessedDataAsZip <- function(project, outputFile, basePath){
   
   filesToZip <- list.files(temp, full.names = TRUE)
   zip(outputFile, filesToZip, flags = "-r9Xj")
+}
+
+downloadProcessedDataSingleFile <- function(project, outputFile, basePath = BASE_PATH){
+  
+  projDataPath <- file.path(basePath, project, "data")
+  processedDatasets <- list.files(
+    projDataPath, pattern = "*processed.csv", full.names = TRUE, recursive = TRUE)
+  datasetNames <- map_chr(processedDatasets, ~ str_extract(., "(?<=/)[^/]+(?=/processed.csv)"))
+  
+  allProcessedData <- map(processedDatasets, read_csv) %>%
+    map2(., datasetNames, ~ {.x$dataset <- .y; .x}) %>%
+    do.call(rbind, .) %>%
+    data.frame()
+  
+  write_csv(allProcessedData, outputFile)
 }
