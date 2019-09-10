@@ -124,11 +124,11 @@ pageProcessData <- function(input, output, session, project, serverEnvironment, 
         actionButton(ns()("plotWaterLevel"), "water level"),
         actionButton(ns()("plotStdDev"), "standard deviation"),
         actionButton(ns()("tableRawData"), "raw data (as table)"),
+        actionButton(ns()("plotRawData"), "raw data (as plot)"),
         actionButton(ns()("plotProcessedData"), "processed data"),
         actionButton(ns()("plotMemory"), "memory"),
         p("Not yet implemented:"),
         actionButton(ns()("plotDeviationForStandards"), "deviation from true value for standards"),
-        actionButton(ns()("plotRawData"), "raw data (as plot)"),
         actionButton(ns()("plotRawVsProcessed"), "raw vs. processed"),
         actionButton(ns()("plotCalibration"), "calibration"),
         actionButton(ns()("plotDrift"), "drift"),
@@ -293,7 +293,24 @@ pageProcessData <- function(input, output, session, project, serverEnvironment, 
         facet_grid(`Identifier 1` ~ ., scales = "free") +
         labs(title = "Raw and memory corrected for block 1 standards (H2)")
     })
+  })
+  
+  observeEvent(input$plotRawData, {
+    # ---- ui ----
+    output$plotOutput <- renderUI(
+      tagList(
+        h4("delta O18"),
+        plotOutput(ns()("plot1")),
+        h4("delta H2"),
+        plotOutput(ns()("plot2"))
+      )
+    )
     
+    # ---- server ----
+    output$plot1 <- renderPlot(
+      qplot(Line, `d(18_16)Mean`, data = rv$datasetForPlottingRaw))
+    output$plot2 <- renderPlot(
+      qplot(Line, `d(D_H)Mean`, data = rv$datasetForPlottingRaw))
   })
 }
 
