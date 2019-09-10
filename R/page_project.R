@@ -40,7 +40,12 @@ pageProjectUI <- function(id){
       ), 
       br(),
       
-      downloadButton(ns("downloadAllData"), "Download all project data")
+      downloadButton(ns("downloadAllData"), 
+                     "Download all project data"),
+      downloadButton(ns("downloadProcessedAsZip"), 
+                     "Download all processed data (zip)"),
+      downloadButton(ns("downloadProcessedSingleFile"), 
+                     "Download all processed data (single file)")
     ),
     wellPanel(
       h3("What do you want to do next?"),
@@ -150,6 +155,24 @@ pageProject <- function(input, output, session, project, serverEnvironment, proj
       on.exit(setwd(owd))
 
       zip(file, filesToZip)
+    }
+  )
+  
+  output$downloadProcessedAsZip <- downloadHandler(
+    filename = "processedData.zip",
+    content = function(file){
+      flog.debug("Downloading processed data (as zip). Project: %s", project())
+      
+      downloadProcessedDataAsZip(project(), file)
+    }
+  )
+  
+  output$downloadProcessedSingleFile <- downloadHandler(
+    filename = "processedData.csv",
+    content = function(file){
+      flog.debug("Downloading processed data (as single file). Project: %s", project())
+      
+      downloadProcessedDataSingleFile(project(), file)
     }
   )
 }

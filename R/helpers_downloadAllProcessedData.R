@@ -13,9 +13,10 @@ downloadProcessedDataAsZip <- function(project, outputFile, basePath = BASE_PATH
   
   walk(datasetNames, ~ {
     processedFile <- file.path(projDataPath, ., "processed.csv")
-    if(file.exists(processedFile))
+    if(file.exists(processedFile)){
       path <- file.path(temp, if(endsWith(., ".csv")) . else str_c(., ".csv"))
       file.copy(processedFile, path)
+    }
   })
   
   filesToZip <- list.files(temp, full.names = TRUE)
