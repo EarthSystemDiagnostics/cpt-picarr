@@ -147,6 +147,7 @@ pageProcessData <- function(input, output, session, project, serverEnvironment, 
     
     # When doing consecutive runs, the help message should "reappear" for each run
     output$helpMessage <- renderText("")
+    Sys.sleep(1)
     
     tryCatch({
         
