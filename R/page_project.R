@@ -82,15 +82,15 @@ pageProject <- function(input, output, session, project, serverEnvironment, proj
   
   observeEvent(
     input$goToGenerateSampleDescr, 
-    goToTab("Generate a sample description", session, serverEnvironment)
+    goToPage("Generate a sample description", serverEnvironment)
   )
   observeEvent(
     input$goToProcessData, 
-    goToTab("Process measurement data", session, serverEnvironment)
+    goToPage("Process measurement data", serverEnvironment)
   )
   observeEvent(
     input$goToUploadData, 
-    goToTab("Upload measurement data", session, serverEnvironment)
+    goToPage("Upload measurement data", serverEnvironment)
   )
   
   # ------------ RENDER OUTPUT --------------

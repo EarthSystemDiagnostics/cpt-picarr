@@ -62,7 +62,7 @@ pageUploadData <- function(input, output, session, project, serverEnvironment){
     evalq(rv$projectDataChanged <- rv$projectDataChanged + 1, envir = serverEnvironment)
   })
   
-  observeEvent(input$goToPageProject,goToTab("Project", session, serverEnvironment))
+  observeEvent(input$goToPageProject, goToPage("Project", serverEnvironment))
 }
 
 ##################

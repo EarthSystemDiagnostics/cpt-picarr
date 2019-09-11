@@ -177,7 +177,7 @@ pageGenerateSampleDescr <- function(input, output, session, project, serverEnvir
   
   # ------- GO BACK TO PAGE PROJECT ----------
   
-  observeEvent(input$goToPageProject,goToTab("Project", session, serverEnvironment))
+  observeEvent(input$goToPageProject, goToPage("Project", serverEnvironment))
 }
 
 ######################################

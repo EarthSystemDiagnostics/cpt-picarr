@@ -94,13 +94,14 @@ server <- function(input, output, session){
   
   # ------------ INITIALIZATION --------------
   
-  rv <- reactiveValues()
+  # header should only display 'Home' at the start
+  goToPage("Home", environment())
   
+  rv <- reactiveValues()
   # Reactive value that should be set by the submodules in order to
   # realize shared state between those modules.
   rv$project <- NULL
   rv$projectDataChanged <- NULL
-  
   # reactive expression to pass to modules
   project <- reactive({rv$project})
   projectDataChanged <- reactive({rv$projectDataChanged})

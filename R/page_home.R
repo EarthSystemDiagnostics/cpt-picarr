@@ -72,7 +72,7 @@ pageHome <- function(input, output, session, serverEnvironment){
   
   observeEvent(input$loadProject, {
     setProject(input$projectToLoad, serverEnvironment)
-    goToTab("Project", session, serverEnvironment)
+    goToPage("Project", serverEnvironment)
   })
   
   observeEvent(input$createProject, {
@@ -91,7 +91,7 @@ pageHome <- function(input, output, session, serverEnvironment){
       output$infoMessage <- renderText("New project created.")
       
       setProject(name, serverEnvironment)
-      goToTab("Project", session, serverEnvironment)
+      goToPage("Project", serverEnvironment)
     }
   })
 }

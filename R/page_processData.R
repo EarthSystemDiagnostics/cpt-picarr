@@ -174,7 +174,7 @@ pageProcessData <- function(input, output, session, project, serverEnvironment, 
     }
   )
   
-  observeEvent(input$goToPageProject,goToTab("Project", session, serverEnvironment))
+  observeEvent(input$goToPageProject, goToPage("Project", serverEnvironment))
   
   # --------------- PLOTS ---------------------
   
@@ -312,6 +312,7 @@ pageProcessData <- function(input, output, session, project, serverEnvironment, 
     output$plot2 <- renderPlot(
       qplot(Line, `d(D_H)Mean`, data = rv$datasetForPlottingRaw))
   })
+  
 }
 
 
