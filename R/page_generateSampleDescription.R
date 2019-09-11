@@ -74,8 +74,18 @@ pageGenerateSampleDescr <- function(input, output, session, project, serverEnvir
   # -------- REACTIVE VALUES -----------------
   
   rv <- reactiveValues()
+  
+  # store up-to date sample description table
   rv$sampleDescr <- emptySampleDescr
+  observeEvent(input$hotSampleDescr, {
+    rv$sampleDescr <- hot_to_r(input$hotSampleDescr)
+  })
+  
+  # store up-to date processing options table
   rv$processingOptions <- processingOptionsInitial
+  observeEvent(input$hotProcessingOptions, {
+    rv$processingOptions <- hot_to_r(input$hotProcessingOptions)
+  })
   
   # Used to match measurement data with its sample description and processing template.
   # Is appended to Identifer 2 to preserve through the measurement process.
