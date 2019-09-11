@@ -1,6 +1,21 @@
 library(futile.logger)
 library(shiny)
 
+#' goToPage
+#'
+#' Go to the target page. Display only the target page name and
+#' 'Home' on the page header.
+#'
+#' Note that the variable 'session' (as used by Shiny) needs 
+#' to be defined in the server environment.
+#' 
+#' @param targetPage A character vector. The name of the page to
+#'                   go to.
+#' @param serverEnvir The environment of app.R's server function.
+#'                    Used to execute code in that environment.
+#'
+#' @return No explicit return value
+#'
 goToPage <- function(targetPage, serverEnvir){
   
   flog.info("go to page '%s'", targetPage)
