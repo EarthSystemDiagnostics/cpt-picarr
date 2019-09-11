@@ -266,7 +266,8 @@ downloadSampleDescr <- function(data, file, uniqueIdentifier){
     select(`Identifier 1`, `Identifier 2`, tray) %>%
     mutate(`Identifier 2` = str_replace_na(`Identifier 2`, replacement = "")) %>%
     mutate(`Identifier 2` = str_c(`Identifier 2`, "_", uniqueIdentifier)) %>%
-    rowid_to_column("vial")
+    rowid_to_column("vial") %>%
+    select(tray, vial, `Identifier 1`, `Identifier 2`) # set explicit column order
   
   write_csv(data, file)
 }
