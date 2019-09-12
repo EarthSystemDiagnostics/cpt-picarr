@@ -1,6 +1,7 @@
 library(tidyverse)
 library(rhandsontable)
 library(piccr)
+library(lubridate)
 library(futile.logger)
 
 #' pageProcessDataUI
@@ -86,7 +87,8 @@ pageProcessData <- function(input, output, session, project, serverEnvironment, 
   rv$processedData <- NULL  # type: nested list (as output by processDatasetsWithPiccr)
   rv$processingSuccessful <- FALSE  # type: logical
   rv$datasetForPlottingRaw <- NULL  # type: data.frame
-  rv$datasetForPlottingProcessed <- NULL  # type: dat.frame
+  rv$datasetForPlottingProcessed <- NULL  # type: data.frame
+  rv$datasetNames <- c()  # type: vector of character vectors
   
   # create a namespace function using the id passed by the frontend
   ns <- reactive(NS(isolate(input$id)))
@@ -109,16 +111,31 @@ pageProcessData <- function(input, output, session, project, serverEnvironment, 
     flog.debug("updated dataset selection on page 'process data' (project : %s)", project())
   })
   
+  # keep rv$datasetNames up to date
+  observe({
+    rv$datasetNames <- input$datasetNames
+    flog.debug("Selected datasets: %s", paste(rv$datasetNames, collapse = ", "))
+  })
+  observe({
+    rv$datasetNames <- getDatasetsInDateRange(input$dateRange, project())
+    flog.debug("Selected datasets: %s", paste(rv$datasetNames, collapse = ", "))
+    datesSelectedMessage <- renderText(
+      sprintf("datasets in this timespan: %s", paste(rv$datasetNames, collapse = ", ")))
+  })
+  
   # update possible choices for number of injections to average over
-  observeEvent(input$datasetNames, {
-    datasets <- loadSelectedDatasets(input$datasetNames, project())
+  observeEvent(rv$datasetNames, {
+    
+    req(rv$datasetNames)
+    
+    datasets <- loadSelectedDatasets(rv$datasetNames, project())
     
     # get the smallest number of injections for any sample
     minInjCountsSelectedDatasets <- map_dbl(datasets, ~ {
       vec <- .$`Inj Nr`
       min(c(vec[vec > lead(vec)], last(vec)), na.rm = T)
     })
-    minInjCount <- min(minInjCountsSelectedDatasets)
+    minInjCount <- min(minInjCountsSelectedDatasets, na.rm = T)
     
     updateSelectInput(session, "averageOverInj", choices = c("all", 1:minInjCount))
   })
@@ -139,7 +156,10 @@ pageProcessData <- function(input, output, session, project, serverEnvironment, 
   
   observeEvent(input$selectionType, {
     if (input$selectionType == "date")
-      element <- dateRangeInput(ns()("dateRange"), "Process all the data in this timespan")
+      element <- tagList(
+        dateRangeInput(ns()("dateRange"), "Process all the data in this timespan"),
+        textOutput(ns()("datesSelectedMessage"))
+      )
     else
       element <- selectizeInput(
         ns()("datasetNames"), "Select one or more datasets to process", 
@@ -178,8 +198,7 @@ pageProcessData <- function(input, output, session, project, serverEnvironment, 
   
   observeEvent(input$doProcess, {
     
-    
-    datasetNames <- input$datasetNames
+    datasetNames <- rv$datasetNames
     req(datasetNames)
     
     # When doing consecutive runs, the help message should "reappear" for each run
@@ -422,4 +441,21 @@ downloadProcessedData <- function(file, processedData){
   # zip does not override existing files
   file.remove(file)
   zip(file, filenames)
+}
+
+#' @param dateRange Vector of Date objects. Length two. 
+getDatasetsInDateRange <- function(dateRange, project, basePath = BASE_PATH){
+  
+  req(dateRange)
+  
+  dateInterval <- interval(first(dateRange), last(dateRange))
+  projectData <- loadProjectData(project, basePath)
+  datasetNames <- map(names(projectData), ~ {
+    date <- ymd(projectData[[.]]$date)
+    if (date %within% dateInterval) return(.)
+  })
+  datasetNames <- datasetNames[!is.null(datasetNames)]
+  datasetNames <- as.character(datasetNames)
+  
+  return(datasetNames)
 }
