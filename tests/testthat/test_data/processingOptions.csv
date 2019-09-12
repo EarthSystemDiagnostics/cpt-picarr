@@ -1,0 +1,6 @@
+Identifier 1,Use for drift correction,Use for calibration,Use as control standard,True delta O18,True delta H2
+HGL-0,FALSE,FALSE,FALSE,-0.1,2
+DML,TRUE,TRUE,FALSE,-42.5,2
+TD1,TRUE,TRUE,FALSE,-33.9,2
+JASE,TRUE,TRUE,FALSE,-50.22,2
+NGT,FALSE,FALSE,FALSE,-34.4,2

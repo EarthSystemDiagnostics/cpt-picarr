@@ -45,11 +45,14 @@ pageGenerateSampleDescrUI <- function(id){
     
     wellPanel(
       h3("All done?"),
-      downloadButton(ns("download"), "Download sample description", style = blue),
+      uiOutput(ns("downloadButtonSpace")),
       textOutput(ns("helpMessageDownload"))
     ),
     
-    actionButton(ns("goToPageProject"), "Back to page 'Project'")
+    actionButton(ns("goToPageProject"), "Back to page 'Project'"),
+    
+    # silently pass the given id to the server function
+    conditionalPanel("false", textInput(ns("id"), label = "", value = id))
   )
 }
 
@@ -78,18 +81,23 @@ pageGenerateSampleDescr <- function(input, output, session, project, serverEnvir
   # store up-to date sample description table
   rv$sampleDescr <- emptySampleDescr
   observeEvent(input$hotSampleDescr, {
+    flog.debug("sample description updated")
     rv$sampleDescr <- hot_to_r(input$hotSampleDescr)
   })
   
   # store up-to date processing options table
   rv$processingOptions <- processingOptionsInitial
   observeEvent(input$hotProcessingOptions, {
+    flog.debug("processing options updated")
     rv$processingOptions <- hot_to_r(input$hotProcessingOptions)
   })
   
   # Used to match measurement data with its sample description and processing template.
   # Is appended to Identifer 2 to preserve through the measurement process.
   rv$uniqueIdentifier <- NULL
+  
+  # create namespace function using the input id
+  ns <- reactive(NS(isolate(input$id)))
   
   # --------  UPDATE TEMPLATES -----------
   
@@ -145,7 +153,8 @@ pageGenerateSampleDescr <- function(input, output, session, project, serverEnvir
   
   observeEvent(input$addRowProcessing, {
     data <- hot_to_r(input$hotProcessingOptions)
-    rv$processingOptions <- add_row(data)
+    rv$processingOptions <- add_row(data, `Use for drift correction` = F, 
+                                    `Use for calibration` = F, `Use as control standard` = F)
   })
   
   observeEvent(input$saveNewTemplateProcessing, {
@@ -161,6 +170,16 @@ pageGenerateSampleDescr <- function(input, output, session, project, serverEnvir
   
   # -------- DOWNLOAD AND SAVE ----------------
   
+  output$downloadButtonSpace <- renderUI({
+    flog.debug("re-rendering download button space")
+    outputElement <- validateSampleDescrAndProccOptions(
+      rv$sampleDescr,
+      rv$processingOptions,
+      "download"
+    )
+    return(outputElement)
+  })
+
   output$download <- downloadHandler(
     filename = "sample_description.csv",
     content = function(file) {
