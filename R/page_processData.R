@@ -35,8 +35,8 @@ pageProcessDataUI <- function(id){
                      # "x/y": x is the calibration flag, y indicates if three-point calibration is to be used.
                      "1/F", "1/T", "2/F", "2/T", "0/F", "0/T"
                    )),
-      selectizeInput(ns("averageOverInj"), "Average over the last n injections", 
-                  choices = list("use all injections" = "all", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)),
+      selectizeInput(
+        ns("averageOverInj"), "Average over the last n injections (selecting datasets updates choices)", c("all")),
       h4("All set up?"), br(),
       actionButton(ns("doProcess"), "Process the data", style = blue),
       downloadButton(ns("download"), "Download the processed data"),
@@ -102,6 +102,20 @@ pageProcessData <- function(input, output, session, project, serverEnvironment, 
     flog.debug("updated dataset selection on page 'process data' (project : %s)", project())
   })
   
+  # update possible choices for number of injections to average over
+  observeEvent(input$datasetNames, {
+    datasets <- loadSelectedDatasets(input$datasetNames, project())
+    
+    # get the smallest number of injections for any sample
+    minInjCountsSelectedDatasets <- map_dbl(datasets, ~ {
+      vec <- .$`Inj Nr`
+      min(c(vec[vec > lead(vec)], last(vec)), na.rm = T)
+    })
+    minInjCount <- min(minInjCountsSelectedDatasets)
+    
+    updateSelectInput(session, "averageOverInj", choices = c("all", 1:minInjCount))
+  })
+  
   # update rv$datasetForPlotting when a dataset is selected
   observeEvent(input$datasetForPlotting, {
     # update raw data
@@ -152,20 +166,15 @@ pageProcessData <- function(input, output, session, project, serverEnvironment, 
     Sys.sleep(1)
     
     tryCatch({
-        
       rv$processedData <- processDatasetsWithPiccr(datasetNames, input, project())
       rv$processingSuccessful <- TRUE
-  
       saveProcessedDataOnServer(rv$processedData, project())
-      
       # signal to other modules that the project data has been changed
       evalq(rv$projectDataChanged <- rv$projectDataChanged + 1, envir = serverEnvironment)
-      
       output$helpMessage <- renderText(
         "Data processed successfully. Processed data saved on server.")
     
     }, error = function(errorMessage) {
-      
       output$helpMessage <- renderText(
         "An error occured and the data could not be processed. See the logs for details.")
       flog.error(errorMessage)
