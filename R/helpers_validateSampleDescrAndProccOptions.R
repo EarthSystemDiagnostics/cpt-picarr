@@ -16,8 +16,9 @@ validateSampleDescrAndProccOptions <- function(sampleDescription, processingOpti
   
   standardsInProccOptions <- processingOptions$`Identifier 1`
   
-  # TODO check if processing options contains duplicates
-  # "Input error: The processing options column 'Identifier 1' contains duplicates."
+  # check if processing options contain duplicates
+  if (any(duplicated(processingOptions$`Identifier 1`)))
+    return(p("Input error: The processing options column 'Identifier 1' contains duplicates."))
   
   # check if all standards are included in the processing options
   for (std in standardsInSampleDesc)
