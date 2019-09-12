@@ -220,8 +220,9 @@ pageProcessData <- function(input, output, session, project, serverEnvironment, 
     })
   })
   
-  # plot raw measurement data
+  # raw measurement data table
   observeEvent(input$tableRawData, {
+
     # ---- ui ----
     output$plotOutput <- renderUI(rHandsontableOutput(ns()("table")))
     
@@ -236,10 +237,6 @@ pageProcessData <- function(input, output, session, project, serverEnvironment, 
     
     # ---- server ----
     data <- rv$datasetForPlottingProcessed
-    
-    # don't include identifer that was appended to column `Identifier 2`
-    data <- mutate(data, `Identifier 2` = str_replace(`Identifier 2`, "_.+$", ""))
-    
     output$table <- renderRHandsontable(rhandsontable(data))
   })
   
