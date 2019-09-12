@@ -21,7 +21,11 @@ pageProcessDataUI <- function(id){
     
     wellPanel(
       h4("Setup and Options"), br(),
-      selectizeInput(ns("datasetNames"), "Select one or more datasets to process", choices = c(), multiple = TRUE),
+      
+      radioButtons(ns("selectionType"), "Select datasets by name or by date?", 
+                   choices = list("Select datasets by name" = "name", "Select datasets by date" = "date"),
+                   selected = NA),
+      uiOutput(ns("selectionSpace")),
       radioButtons(ns("useMemoryCorrection"), "Use memory correction?", c("Yes" = TRUE, "No" = FALSE)),
       radioButtons(ns("driftAndCalibration"), "Drift correction and calibration options", 
                    choiceNames = list(
@@ -37,6 +41,7 @@ pageProcessDataUI <- function(id){
                    )),
       selectizeInput(
         ns("averageOverInj"), "Average over the last n injections (selecting datasets updates choices)", c("all")),
+      
       h4("All set up?"), br(),
       actionButton(ns("doProcess"), "Process the data", style = blue),
       downloadButton(ns("download"), "Download the processed data"),
@@ -91,11 +96,13 @@ pageProcessData <- function(input, output, session, project, serverEnvironment, 
   # display currently loaded project
   output$projectName <- renderText(sprintf("Project: %s", project()))
   
-  # update the list of selectable datasets when a new 
+  # update the list of selectable datasets when a 
   # project is loaded or a dataset is uploaded.
   observe({
-    # add dependency on the reactive expression projectDataChanged
+    # add dependency on projectDataChanged 
     force(projectDataChanged()) 
+    # update list of selectable datasets when a the selection typ is chosen
+    force(input$selectionType)
     
     datasets <- getNamesOfDatasetsInProject(project())
     updateSelectizeInput(session, "datasetNames", choices = datasets)
@@ -128,6 +135,19 @@ pageProcessData <- function(input, output, session, project, serverEnvironment, 
     flog.debug("update rv$datasetForPlottingProcessed")
   })
   
+  # --------------- RENDER DATASET SELECTION SECTION -------------
+  
+  observeEvent(input$selectionType, {
+    if (input$selectionType == "date")
+      element <- dateRangeInput(ns()("dateRange"), "Process all the data in this timespan")
+    else
+      element <- selectizeInput(
+        ns()("datasetNames"), "Select one or more datasets to process", 
+        choices = c(), multiple = TRUE)
+    
+    output$selectionSpace <- renderUI(element)
+  })
+  
   # --------------- RENDER PLOTS SECTION DYNAMICALLY --------------
   
   output$plots <- renderUI({
@@ -157,6 +177,7 @@ pageProcessData <- function(input, output, session, project, serverEnvironment, 
   # --------------- REACT TO USER INPUT (PROCESSING AND DOWNLOAD) -------------------
   
   observeEvent(input$doProcess, {
+    
     
     datasetNames <- input$datasetNames
     req(datasetNames)
