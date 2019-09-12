@@ -175,7 +175,7 @@ pageGenerateSampleDescr <- function(input, output, session, project, serverEnvir
     outputElement <- validateSampleDescrAndProccOptions(
       rv$sampleDescr,
       rv$processingOptions,
-      "download"
+      ns()("download")
     )
     return(outputElement)
   })
