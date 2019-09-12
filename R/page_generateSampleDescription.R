@@ -125,7 +125,7 @@ pageGenerateSampleDescr <- function(input, output, session, project, serverEnvir
   
   observeEvent(input$addRowSampleDescr, {
     data <- hot_to_r(input$hotSampleDescr)
-    rv$sampleDescr <- add_row(data, tray = 1)
+    rv$sampleDescr <- add_row(data, tray = 1, `Is standard?` = FALSE)
   })
   
   observeEvent(input$saveNewTemplateSampleDescr, {

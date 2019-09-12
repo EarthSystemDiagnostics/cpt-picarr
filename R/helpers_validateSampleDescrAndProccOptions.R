@@ -16,10 +16,6 @@ validateSampleDescrAndProccOptions <- function(sampleDescription, processingOpti
   
   standardsInProccOptions <- processingOptions$`Identifier 1`
   
-  # check if processing options contain duplicates
-  if (any(duplicated(processingOptions$`Identifier 1`)))
-    return(p("Input error: The processing options column 'Identifier 1' contains duplicates."))
-  
   # check if all standards are included in the processing options
   for (std in standardsInSampleDesc)
     if (!std %in% standardsInProccOptions) 
@@ -30,6 +26,10 @@ validateSampleDescrAndProccOptions <- function(sampleDescription, processingOpti
     if (!std %in% standardsInSampleDesc) 
       return(p("Input error: The standard '", std, 
                "' is included in the processing options but not in the sample description."))
+  
+  # check if processing options contain duplicates
+  if (any(duplicated(processingOptions$`Identifier 1`)))
+    return(p("Input error: The processing options column 'Identifier 1' contains duplicates."))
   
   # check that there are no misssing values in processing options
   if (any(is.na(processingOptions)))

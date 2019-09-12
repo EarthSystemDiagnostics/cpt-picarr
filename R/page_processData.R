@@ -156,12 +156,16 @@ pageProcessData <- function(input, output, session, project, serverEnvironment, 
   
       saveProcessedDataOnServer(rv$processedData, project())
       
-      output$helpMessage <- renderText("Data processed successfully. Processed data saved on server.")
+      # signal to other modules that the project data has been changed
+      evalq(rv$projectDataChanged <- rv$projectDataChanged + 1, envir = serverEnvironment)
+      
+      output$helpMessage <- renderText(
+        "Data processed successfully. Processed data saved on server.")
     
     }, error = function(errorMessage) {
       
-      output$helpMessage <- renderText("An error occured and the data could not be processed. 
-                                       See the logs for details.")
+      output$helpMessage <- renderText(
+        "An error occured and the data could not be processed. See the logs for details.")
       flog.error(errorMessage)
     })
   })
