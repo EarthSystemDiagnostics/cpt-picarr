@@ -46,7 +46,7 @@ BASE_PATH
       -> project.info (name, people involved, Additional info, expedition date)
       -> templates
           -> sampleDescription
-          -> processingOptions
+          -> processing
       -> data
           -> xyz
               -> dataset.info (name, additional information, device)
