@@ -3,29 +3,23 @@ library(futile.logger)
 library(piccr)
 
 processDataWithPiccr <- function(datasets, processingOptions, useMemoryCorrection, 
-                                 calibrationFlag, useThreePointCalibration){
+                                 calibrationFlag, useThreePointCalibration, averageOverLastNInj){
   
   flog.info(str_c("Processing datasets"))
   
   flog.debug("Generating config")
-  config <- generateConfig(useMemoryCorrection, calibrationFlag, useThreePointCalibration)
+  config <- list(
+    average_over_last_n_inj = averageOverLastNInj,
+    use_memory_correction = useMemoryCorrection,
+    calibration_method = calibrationFlag,
+    use_three_point_calibration = useThreePointCalibration
+  )
   
   flog.debug("Processing the loaded datasets")
   processedData <- processDatasets(datasets, processingOptions, config)
   
   flog.debug("Outputting the processed data")
   return(processedData)
-}
-
-generateConfig <- function(useMemoryCorrection, calibrationFlag, useThreePointCalibration){
-  
-  config <- list(
-    average_over_last_n_inj = 3,
-    use_memory_correction = useMemoryCorrection,
-    calibration_method = calibrationFlag,
-    use_three_point_calibration = useThreePointCalibration
-  )
-  return(config)
 }
 
 processDatasets <- function(datasets, processingOptions, config){

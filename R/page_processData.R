@@ -35,6 +35,8 @@ pageProcessDataUI <- function(id){
                      # "x/y": x is the calibration flag, y indicates if three-point calibration is to be used.
                      "1/F", "1/T", "2/F", "2/T", "0/F", "0/T"
                    )),
+      selectizeInput(ns("averageOverInj"), "Average over the last n injections", 
+                  choices = list("use all injections" = "all", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)),
       h4("All set up?"), br(),
       actionButton(ns("doProcess"), "Process the data", style = blue),
       downloadButton(ns("download"), "Download the processed data"),
@@ -336,8 +338,10 @@ processDatasetsWithPiccr <- function(datasetNames, input, project){
   calibrationFlag <- as.numeric(str_split(input$driftAndCalibration, "/")[[1]][[1]])
   useThreePointCalibration <- as.logical(str_split(input$driftAndCalibration, "/")[[1]][[2]])
   
-  processedData <- processDataWithPiccr(datasets, processingOptions, input$useMemoryCorrection, 
-                                        calibrationFlag, useThreePointCalibration)
+  processedData <- processDataWithPiccr(
+    datasets, processingOptions, input$useMemoryCorrection, 
+    calibrationFlag, useThreePointCalibration, input$averageOverInj
+  )
   return(processedData)
 }
 

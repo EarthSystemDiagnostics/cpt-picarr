@@ -124,6 +124,7 @@ saveData <- function(outputDir, data, fileName, processingOptions, sampleDescrip
   dir.create(outputDir, recursive = TRUE)
   
   dataWithoutIdentifier <- mutate(data, `Identifier 2` = str_replace(`Identifier 2`, "_[^_]+$", ""))
+  
   write_csv(dataWithoutIdentifier, file.path(outputDir, fileName))
   write_csv(processingOptions, file.path(outputDir, "processingOptions.csv"))
   write_csv(sampleDescription, file.path(outputDir, "sampleDescription.csv"))
