@@ -36,7 +36,7 @@ test_that("test", {
   
   dataset1Path <- file.path(dataPath, "dataset 1")
   dir.create(dataset1Path)
-  write_csv(tibble(TimeCode = c("2015/11/2504:47:06", "2015/11/2512:50:10")), 
+  write_csv(tibble(`Time Code` = c("2015/11/2504:47:06", "2015/11/2512:50:10")), 
             file.path(dataset1Path, "raw.csv"))
   write_file("some info", file.path(dataset1Path, "fileInfo.txt"))
   file.create(file.path(dataset1Path, "processed.csv"))
@@ -46,13 +46,13 @@ test_that("test", {
   
   dataset2Path <- file.path(dataPath, "dataset 2")
   dir.create(dataset2Path)
-  write_csv(tibble(TimeCode = c("1990/07/0304:47:06", "1990/07/0312:50:10")), 
+  write_csv(tibble(`Time Code` = c("1990/07/0304:47:06", "1990/07/0312:50:10")), 
             file.path(dataset2Path, "bcdef45678.csv"))
   write_file("additional info yay", file.path(dataset2Path, "fileInfo.txt"))
   
   dataset3Path <- file.path(dataPath, "dataset 3")
   dir.create(dataset3Path)
-  write_csv(tibble(TimeCode = c("2019/01/3104:47:06", "2019/01/3112:50:10")), 
+  write_csv(tibble(`Time Code` = c("2019/01/3104:47:06", "2019/01/3112:50:10")), 
             file.path(dataset3Path, "raw.csv"))
   
   dataset4Path <- file.path(dataPath, "dataset IV")

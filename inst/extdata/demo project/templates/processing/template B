@@ -1,0 +1,7 @@
+Identifier 1,Use for drift correction,Use for calibration,Use as control standard,True delta O18,True delta H2
+MilliQ IsoLab_2,FALSE,FALSE,TRUE,-10,-70
+SEZ-2_3,TRUE,TRUE,FALSE,-28,-214
+HGL-1_7,TRUE,TRUE,FALSE,-0.88,-8.6
+MXW_7,TRUE,TRUE,FALSE,-43.6,-360
+HDW1_3,TRUE,TRUE,FALSE,-13.4,-102.8
+NGT_3,TRUE,TRUE,FALSE,-35.5,-276.8

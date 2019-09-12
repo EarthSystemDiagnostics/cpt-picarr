@@ -226,7 +226,7 @@ getStoredData <- function(datasetName, project, basePath){
   rawFile <- getPathToRawData(datasetName, project, basePath, fullPath = FALSE)
   if (!is_empty(rawFile)){
     rawData <- read_csv(file.path(projectDataPath, datasetName, rawFile))
-    date <- lubridate::ymd_hms(rawData$TimeCode) %>%
+    date <- lubridate::ymd_hms(rawData$`Time Code`) %>%
       lubridate::date() %>%
       first() %>%
       as.character()
