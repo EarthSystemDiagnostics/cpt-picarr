@@ -101,7 +101,7 @@ uploadDataset <- function(input, project, basePath = BASE_PATH){
     return(sprintf("Upload aborted. A dataset with the same name exists already. (path: %s)", outputDir))
   
   saveData(outputDir, data, fileName, processingOptions, sampleDescription)
-  saveAdditionalInfo(outputDir, input$info)
+  createInfoFile(outputDir, data, fileName, input$info)
   
   return(sprintf("Dataset sucessfully uploaded. Processing Options and 
                  sample descriptions were found. (The data is in %s)", outputDir))
@@ -130,7 +130,13 @@ saveData <- function(outputDir, data, fileName, processingOptions, sampleDescrip
   write_csv(sampleDescription, file.path(outputDir, "sampleDescription.csv"))
 }
 
-saveAdditionalInfo <- function(outputDir, info){
-  path <- file.path(outputDir, "fileInfo.txt")
-  write_file(info, path)
+createInfoFile <- function(outputDir, data, fileName, info){
+  
+  date   <- getDate(data)
+  device <- str_extract(fileName, "^[^_]+(?=_)")
+  
+  list.save(
+    list(date = date, device = device, additionalInfo = info),
+    file.path(outputDir, "fileInfo.json")
+  )
 }

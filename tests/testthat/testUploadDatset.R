@@ -1,5 +1,6 @@
 library(testthat)
 library(readr)
+library(rlist)
 
 context("test uploading a dataset")
 
@@ -45,7 +46,11 @@ test_that("upload data and fetching processing options", {
   on.exit(unlink(basePath, recursive = TRUE))
   
   # create test dataset
-  data <- tibble(`Identifier 2` = c("_123.456", "a_123.456"), colA = c(1.2, 4.6))
+  data <- tibble(
+    `Identifier 2` = c("_123.456", "a_123.456"), 
+    `Time Code` = c("2019/08/31 16:06:46", "2019/08/31 16:06:46"), 
+    colA = c(1.2, 4.6)
+  )
   filePath <- file.path(tempdir(), "testData.csv")
   write_csv(data, filePath)
   
@@ -58,7 +63,7 @@ test_that("upload data and fetching processing options", {
   write_csv(sampleDescription, file.path(optionsPath, "sampleDescription.csv"))
   
   input <- list(
-    file = tibble(name = c("file name"), datapath = c(filePath)),
+    file = tibble(name = c("devicename_filename"), datapath = c(filePath)),
     name = "dataset A",
     info = "some info"
   )
@@ -82,13 +87,14 @@ test_that("upload data and fetching processing options", {
                  sample descriptions were found. (The data is in %s)", outputDir)
   )
   expect_equal(
-    read_csv(file.path(outputDir, "file name")),
-    tibble(`Identifier 2` = c(NA, "a"), colA = c(1.2, 4.6))
+    read_csv(file.path(outputDir, "devicename_filename")),
+    tibble(`Identifier 2` = c(NA, "a"), colA = c(1.2, 4.6), 
+           `Time Code` = c("2019/08/31 16:06:46", "2019/08/31 16:06:46"))
   )
-  expect_true(file.exists(file.path(outputDir, "fileInfo.txt")))
+  expect_true(file.exists(file.path(outputDir, "fileInfo.json")))
   expect_equal(
-    read_file(file.path(outputDir, "fileInfo.txt")),
-    "some info"
+    list.load(file.path(outputDir, "fileInfo.json")),
+    list(date = "2019-08-31", device = "devicename", additionalInfo = "some info")
   )
 })
 
