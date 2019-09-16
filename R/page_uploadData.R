@@ -18,6 +18,7 @@ pageUploadDataUI <- function(id){
     
     wellPanel(
       fileInput(ns("file"), "Select a file to upload"),
+      textOutput(ns("device")), br(),
       textInput(ns("name"), "Name the dataset"),
       textAreaInput(ns("info"), "Information about the dataset (optional)"), br(),
       actionButton(ns("upload"), "Upload the dataset", style = blue),
@@ -48,6 +49,10 @@ pageUploadData <- function(input, output, session, project, serverEnvironment){
   
   # display currently loaded project
   output$projectName <- renderText(sprintf("Project: %s", project()))
+  
+  # display detected device name
+  output$device <- renderText(
+    sprintf("Detected measurement instrument: %s", getDevice(input$file$name)))
   
   # auto fill in name field when file is uploaded
   observeEvent(input$file, {
@@ -133,7 +138,7 @@ saveData <- function(outputDir, data, fileName, processingOptions, sampleDescrip
 createInfoFile <- function(outputDir, data, fileName, info){
   
   date   <- getDate(data)
-  device <- str_extract(fileName, "^[^_]+(?=_)")
+  device <- getDevice(fileName)
   
   list.save(
     list(date = date, device = device, additionalInfo = info),
@@ -146,4 +151,8 @@ getDate <- function(data){
     lubridate::date() %>%
     first() %>%
     as.character()
+}
+
+getDevice <- function(fileName){
+  str_extract(fileName, "^[^_]+(?=_)")
 }
