@@ -132,8 +132,9 @@ pageProject <- function(input, output, session, project, serverEnvironment, proj
         # Only output attributes if they are given in projectData
         if(isTruthy(.x$path))           p("path: ", .x$path),
         if(isTruthy(.x$raw))            p("raw data: ", .x$raw),
-        if(isTruthy(.x$date))           p("date measured: ", .x$date),
         if(isTruthy(.x$processed))      p("processed data: ", .x$processed),
+        if(isTruthy(.x$date))           p("date measured: ", .x$date),
+        if(isTruthy(.x$device))         p("measurement instrument: ", .x$device),
         if(isTruthy(.x$additionalInfo)) p("additional info: ", .x$additionalInfo)
       )
     })
@@ -196,8 +197,9 @@ loadProjectInfo <- function(projectName, basePath = BASE_PATH){
 #'           $path (path to the folder with data for this dataset)
 #'           $raw  (name of the file with raw data)
 #'           $date (measurement date)
-#'           $additionalInfo (content of the file 'fileInfo.txt')
+#'           $device (serial number of measurement device)
 #'           $processed ('processed.csv' if the dataset has been processed)
+#'           $additionalInfo
 #'         Note that only the components are present, for which data
 #'         exists.
 loadProjectData <- function(project, basePath = BASE_PATH){
@@ -215,32 +217,20 @@ loadProjectData <- function(project, basePath = BASE_PATH){
 
 getStoredData <- function(datasetName, project, basePath){
   
-  projectDataPath <- file.path(basePath, project, "data")
+  dataPath <- file.path(basePath, project, "data", datasetName)
+  infoFilePath <- file.path(dataPath, "fileInfo.json")
+  fileInfo <- list.load(infoFilePath)
   
-  # use to assemble output step-by-step
   output <- list(
-    path = file.path(projectDataPath, datasetName)
+    path = dataPath,
+    raw = getPathToRawData(datasetName, project, basePath, fullPath = FALSE),
+    additionalInfo = fileInfo$additionalInfo,
+    date = fileInfo$date,
+    device = fileInfo$device
   )
   
-  # add rawFile and date to output
-  rawFile <- getPathToRawData(datasetName, project, basePath, fullPath = FALSE)
-  if (!is_empty(rawFile)){
-    rawData <- read_csv(file.path(projectDataPath, datasetName, rawFile))
-    date <- lubridate::ymd_hms(rawData$`Time Code`) %>%
-      lubridate::date() %>%
-      first() %>%
-      as.character()
-    output$raw <- rawFile
-    output$date <- date
-  }
-  
-  # add additionalInfo to output
-  infoFile <- file.path(projectDataPath, datasetName, "fileInfo.txt")
-  if(file.exists(infoFile)) output$additionalInfo <- read_file(infoFile)
-  
-  # add processed to output
-  processedFile <- file.path(projectDataPath, datasetName, "processed.csv")
-  if(file.exists(processedFile)) output$processed <- "processed.csv"
+  if(file.exists(file.path(dataPath, "processed.csv"))) 
+    output$processed <- "processed.csv"
   
   return(output)
 }
