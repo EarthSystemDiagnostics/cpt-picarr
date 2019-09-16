@@ -19,21 +19,24 @@ validateSampleDescrAndProccOptions <- function(sampleDescription, processingOpti
   # check if all standards are included in the processing options
   for (std in standardsInSampleDesc)
     if (!std %in% standardsInProccOptions) 
-      return(p("Input error: The standard '", std, "' is missing from the processing options."))
+      return(p("Input error: The standard '", std, 
+               "' is missing from the processing options.", style = "color:red"))
   
   # check that no standards are in the proccessing options that are not in the sample descr
   for (std in standardsInProccOptions)
     if (!std %in% standardsInSampleDesc) 
       return(p("Input error: The standard '", std, 
-               "' is included in the processing options but not in the sample description."))
+               "' is included in the processing options but not in the sample description.",
+               style = "color:red"))
   
   # check if processing options contain duplicates
   if (any(duplicated(processingOptions$`Identifier 1`)))
-    return(p("Input error: The processing options column 'Identifier 1' contains duplicates."))
+    return(p("Input error: The processing options column 'Identifier 1' contains duplicates.", 
+             style = "color:red"))
   
   # check that there are no misssing values in processing options
   if (any(is.na(processingOptions)))
-    return(p("Input error: The processing options table contains empty cells."))
+    return(p("Input error: The processing options table contains empty cells.", style = "color:red"))
   
   # check that control standard is not selected for anything else
   for (row in 1:nrow(processingOptions)){
@@ -43,7 +46,8 @@ validateSampleDescrAndProccOptions <- function(sampleDescription, processingOpti
     isBadEntry <- isControlStandard && isUsedForSomethingElse
     if (isBadEntry) 
       return(p("Input error: The standard '", processingOptions[[row, "Identifier 1"]], 
-               "' is selected as control standard. It may not be selected for anything else."))
+               "' is selected as control standard. It may not be selected for anything else.",
+               style = "color:red"))
   }
   
   # sample description and processing options were validated sucessfully
