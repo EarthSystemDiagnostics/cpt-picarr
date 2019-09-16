@@ -49,7 +49,7 @@ BASE_PATH
           -> processing
       -> data
           -> xyz
-              -> dataset.info (name, additional information, device)
+              -> fileInfo.json (name, additional information, device)
               -> sampleDescription.csv
               -> processingOptions.csv
               -> raw.csv (use name of uploaded file)
