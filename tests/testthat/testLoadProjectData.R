@@ -13,25 +13,6 @@ test_that("test", {
   dir.create(basePath, recursive = TRUE)
   on.exit(unlink(basePath, recursive = TRUE))
   
-  # basePath
-  #   |_ Project A
-  #      |_ data
-  #         |_ dataset 1
-  #            |_ raw.csv
-  #            |_ processed.csv
-  #            |_ fileInfo.txt
-  #            |_ processingOptions.csv
-  #            |_ sampleDescription.csv
-  #         |_ dataset 2
-  #            |_ bcdef45678.csv (raw)
-  #            |_ fileInfo.txt
-  #         |_ dataset 3
-  #            |_ raw.csv
-  #         |_ dataset IV
-  #            |_ processingOptions.csv
-  #            |_ sampleDescription.csv
-  #         
-  
   dataPath <- file.path(basePath, project, "data")
   dir.create(dataPath, recursive = TRUE)
   

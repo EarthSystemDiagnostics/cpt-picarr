@@ -140,3 +140,10 @@ createInfoFile <- function(outputDir, data, fileName, info){
     file.path(outputDir, "fileInfo.json")
   )
 }
+
+getDate <- function(data){
+  lubridate::ymd_hms(data$`Time Code`) %>%
+    lubridate::date() %>%
+    first() %>%
+    as.character()
+}

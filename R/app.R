@@ -39,9 +39,12 @@ BASE_PATH <- list.load(configPath)$BASE_PATH
 # set BASE_PATH in global environemnt to prevent namespacing issues
 assign("BASE_PATH", BASE_PATH, envir = globalenv())
 
-# Initialize the directory structure. 
+# ------------------ INITIALIZE DIRECTORY STRUCTURE ---------------
 # This is most useful when the app is run for the first time.
+
 dir.create(file.path(BASE_PATH, "processingOptions"), recursive = TRUE, showWarnings = FALSE)
+if (!file.exists(file.path(BASE_PATH, "devices.json"))) 
+  write_file("{}", file.path(BASE_PATH, "devices.json"))
 
 # ------------------ UI AND SERVER DEFINITIONS FOR THE APP -------------
 
