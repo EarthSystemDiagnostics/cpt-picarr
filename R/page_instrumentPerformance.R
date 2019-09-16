@@ -29,14 +29,15 @@ pageInstrumentPerformanceUI <- function(id){
 
 pageInstrumentPerformance <- function(input, output, session, serverEnvironment){
   
+  # ------------ INITIALIZATION -----------
+  
   updateSelectizeInput(session, "instruments", choices = getDeviceNames())
+  
+  # ------------ DISPLAY HELP MESSAGE ----------
   
   observe({
     
-    force(input$instruments)
-    force(input$dataRange)
-    
-    datasets <- getDataForDevices(input$instruments)
+    datasets <- getDataForDevicesAndDaterange(input$instruments, input$dateRange[1], input$dateRange[2])
     datasetsWithProcessedData <- datasets[file.exists(file.path(datasets, "processed.csv"))]
     
     output$helpMessage <- renderText(
@@ -44,10 +45,14 @@ pageInstrumentPerformance <- function(input, output, session, serverEnvironment)
               Out of these datasets %s have been processed.", length(datasets), length(datasetsWithProcessedData)))
   })
   
+  # ------------- PLOTS ---------------
+  
   observeEvent(input$go, {
     
-    datasets <- getDataForDevices(input$instruments)
+    datasets <- getDataForDevicesAndDaterange(input$instruments, input$dateRange[1], input$dateRange[2])
     datasetsWithProcessedData <- datasets[file.exists(file.path(datasets, "processed.csv"))]
+    
+    req(datasetsWithProcessedData)
     
     deviations <- map_dfr(datasetsWithProcessedData, function(dataset) {
       processedData <- read_csv(file.path(dataset, "processed.csv"))
@@ -86,12 +91,19 @@ getDeviceNames <- function(basePath = BASE_PATH){
   return(unique(devices))
 }
 
-getDataForDevices <- function(devices, basePath = BASE_PATH){
+getDataForDevicesAndDaterange <- function(devices, startDate, endDate, basePath = BASE_PATH){
+  
+  dateInterval <- lubridate::interval(ymd(startDate), ymd(endDate))
   
   infoFiles <- list.files(basePath, pattern = "fileInfo.json", recursive = T, full.names = T)
-  relevantInfoFiles <- list.filter(infoFiles, ~ list.load(.)$device %in% devices)
+  relevantInfoFiles <- list.filter(infoFiles, ~ {
+    info <- list.load(.)
+    info$device %in% devices && ymd(info$date) %within% dateInterval
+  })
+  
   datasetPaths <- str_split(relevantInfoFiles, "/") %>%
     map(~ head(., -1)) %>%
     map_chr(~ paste(., collapse = "/"))
+  
   return(datasetPaths)
 }

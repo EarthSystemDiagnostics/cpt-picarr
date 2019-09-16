@@ -1,6 +1,6 @@
 library(testthat)
 
-context("test functions getDataForDevices and getDeviceNames")
+context("test functions getDataForDevicesAndTimespan and getDeviceNames")
 
 test_that("test", {
   
@@ -41,10 +41,10 @@ test_that("test", {
   # -------- CALL FUNCTION UNDER TEST -------------
   
   devices <- getDeviceNames(basePath)
-  data    <- getDataForDevices(c("device A"), basePath)
+  data    <- getDataForDevicesAndDaterange(c("device A"), "2017-01-01", "2020-01-01", basePath)
   
   # -------- MAKE EXPECTATIONS -------------
   
   expect_equal(devices, c("device A", "device B"))
-  expect_equal(data, c(dataset1Path, dataset3Path))
+  expect_equal(data, c(dataset3Path))
 })
