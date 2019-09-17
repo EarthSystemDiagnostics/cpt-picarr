@@ -31,7 +31,7 @@ pageInstrumentPerformance <- function(input, output, session, serverEnvironment)
   
   # ------------ INITIALIZATION -----------
   
-  updateSelectizeInput(session, "instruments", choices = getDeviceNames())
+  updateSelectizeInput(session, "instruments", choices = getDevicesAsStrings())
   
   # ------------ DISPLAY HELP MESSAGE ----------
   
@@ -83,13 +83,6 @@ pageInstrumentPerformance <- function(input, output, session, serverEnvironment)
 ##################
 # HELPERS
 ##################
-
-getDeviceNames <- function(basePath = BASE_PATH){
-  
-  infoFiles <- list.files(basePath, pattern = "fileInfo.json", recursive = T, full.names = T)
-  devices   <- map_chr(infoFiles, ~ list.load(.)$device)
-  return(unique(devices))
-}
 
 getDataForDevicesAndDaterange <- function(devices, startDate, endDate, basePath = BASE_PATH){
   

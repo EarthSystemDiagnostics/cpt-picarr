@@ -75,15 +75,6 @@ pageManageDevices <- function(input, output, session, serverEnvironment){
 # HELPERS
 #####################
 
-getDevices <- function(basePath = BASE_PATH){
-  
-  path <- file.path(basePath, "devices.json")
-  if (file.exists(path))
-    list.load(path)
-  else
-    list()
-}
-
 addDevice <- function(name, code, info, basePath = BASE_PATH){
   
   # validate input

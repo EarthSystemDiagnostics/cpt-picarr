@@ -51,8 +51,7 @@ pageUploadData <- function(input, output, session, project, serverEnvironment){
   output$projectName <- renderText(sprintf("Project: %s", project()))
   
   # update list of possible devices
-  updateSelectInput(
-    session, "device", choices = map(getDevices(), ~ sprintf("%s (%s)", .$name, .$code)))
+  updateSelectInput(session, "device", choices = getDevicesAsStrings())
   
   # auto fill in name field when file is uploaded
   observeEvent(input$file, {
