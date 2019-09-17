@@ -11,8 +11,13 @@ pageManageDevicesUI <- function(id){
     h2("Manage devices"),
     
     wellPanel(
+      style = "height: 550px",
       h3("Known devices"),
-      uiOutput(ns("knownDevices"))
+      conditionalPanel("true",
+        # add CSS to make panel scrollable to reduce vertical size
+        style = "overflow-y:scroll; height: 435px",
+        uiOutput(ns("knownDevices"))
+      )
     ),
     
     wellPanel(
