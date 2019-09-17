@@ -77,6 +77,10 @@ ui <- navbarPage(
     tabPanel(
       "Instrument performance",
       pageInstrumentPerformanceUI("instPerf")
+    ),
+    tabPanel(
+      "Manage devices",
+      pageManageDevicesUI("manageDevices")
     )
 )
 
@@ -142,6 +146,10 @@ server <- function(input, output, session){
   )
   callModule(
     pageInstrumentPerformance, "instPerf",
+    serverEnvironment = ownEnvir
+  )
+  callModule(
+    pageManageDevices, "manageDevices",
     serverEnvironment = ownEnvir
   )
 }

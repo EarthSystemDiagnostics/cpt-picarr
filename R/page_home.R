@@ -45,6 +45,11 @@ pageHomeUI <- function(id){
           p("Look at cross-project statistics to analyze the performance 
             of your measurement instruments over time."),
           actionButton(ns("goToInstrumentPerformance"), "Go to page 'Instrument performance'", style = blue)
+        ),
+        wellPanel(
+          h3("Manage devices"),
+          p("List known isotope measurement devices or add a new device."),
+          actionButton(ns("goToManageDevices"), "Manage devices", style = blue)
         )
       )
     )
@@ -110,6 +115,10 @@ pageHome <- function(input, output, session, serverEnvironment){
   
   observeEvent(input$goToInstrumentPerformance, {
     goToPage("Instrument performance", serverEnvironment)
+  })
+  
+  observeEvent(input$goToManageDevices, {
+    goToPage("Manage devices", serverEnvironment)
   })
 }
 
