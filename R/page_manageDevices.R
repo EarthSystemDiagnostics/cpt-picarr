@@ -2,6 +2,13 @@ library(shiny)
 library(tidyverse)
 library(rlist)
 
+#' pageManageDevicesUI
+#'
+#' UI function for the page 'Manage devices'.
+#'
+#' @param id Identifier for the namespace of this module
+#'
+#' @return A HTML tag object
 pageManageDevicesUI <- function(id){
   
   # create namespace function
@@ -34,7 +41,23 @@ pageManageDevicesUI <- function(id){
   )
 }
 
+#' pageManageDevices
+#'
+#' Implements the server logic for the page 'Manage devices'.
+#'
+#' @param input Shiny inputs
+#' @param output Shiny outputs
+#' @param session Shiny session
+#' @param serverEnvironment An environment. The environment of the 
+#'                          server function that calls this module.
+#'                          Used to execute code in the environment of the 
+#'                          main server function for the app (e.g. to 
+#'                          switch between pages).
+#'
+#' @return No explicit return value
 pageManageDevices <- function(input, output, session, serverEnvironment){
+  
+  # ------------ INITIALIZE REACTIVE STATE ----------
   
   # create a namespace function using the id passed by the frontend
   ns <- reactive(NS(isolate(input$id)))
@@ -75,9 +98,15 @@ pageManageDevices <- function(input, output, session, serverEnvironment){
 # HELPERS
 #####################
 
+#' addDevice
+#'
+#' Add a new measurement device to the collection of known devices.
+#' Manipulates the file 'BASE_PATH/devices.json'.
+#'
+#' @return A status message that can be rendered as text output.
 addDevice <- function(name, code, info, basePath = BASE_PATH){
   
-  # validate input
+  # exit early if name or code is already in use
   if (nameInUse(name, basePath))
     return("Input Error: The chosen name is already in use.")
   if (codeInUse(code, basePath))
@@ -98,13 +127,11 @@ addDevice <- function(name, code, info, basePath = BASE_PATH){
 }
 
 nameInUse <- function(name, basePath){
-  
   devices <- getDevices(basePath)
   name %in% map_chr(devices, ~ .$name)
 }
 
 codeInUse <- function(code, basePath){
-  
   devices <- getDevices(basePath)
   code %in% map_chr(devices, ~ .$code)
 }

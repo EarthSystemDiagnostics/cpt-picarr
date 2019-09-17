@@ -3,6 +3,13 @@ library(rlist)
 library(tidyverse)
 library(lubridate)
 
+#' pageInstrumentPerformanceUI
+#'
+#' UI function for the page 'Instrument performance'
+#'
+#' @param id Identifier for the namespace of this module
+#'
+#' @return A HTML tag object
 pageInstrumentPerformanceUI <- function(id){
   
   # create namespace function
@@ -27,6 +34,20 @@ pageInstrumentPerformanceUI <- function(id){
   )
 }
 
+#' pageInstrumentPerformance
+#'
+#' Implements the server logic for the page 'Instrument performance'.
+#'
+#' @param input Shiny inputs
+#' @param output Shiny outputs
+#' @param session Shiny session
+#' @param serverEnvironment An environment. The environment of the 
+#'                          server function that calls this module.
+#'                          Used to execute code in the environment of the 
+#'                          main server function for the app (e.g. to 
+#'                          switch between pages).
+#'
+#' @return No explicit return value
 pageInstrumentPerformance <- function(input, output, session, serverEnvironment){
   
   # ------------ INITIALIZATION -----------
