@@ -27,16 +27,17 @@ test_that("test no name given", {
   expect_equal(messageActual, "You need to name the dataset before clicking this button.")
 })
 
-test_that("test no name given", {
+test_that("test no device given", {
   
   input <- list(
     file = "some file",
-    name = NA
+    name = "some name",
+    device = NULL
   )
   
   messageActual <- uploadDataset(input, "project")
   
-  expect_equal(messageActual, "You need to name the dataset before clicking this button.")
+  expect_equal(messageActual, "You need to select a device before clicking this button.")
 })
 
 test_that("upload data and fetching processing options", {
@@ -65,7 +66,8 @@ test_that("upload data and fetching processing options", {
   input <- list(
     file = tibble(name = c("devicename_filename"), datapath = c(filePath)),
     name = "dataset A",
-    info = "some info"
+    info = "some info",
+    device = "device A (code A)"
   )
   
   messageActual <- uploadDataset(input, "Project A", basePath)
@@ -94,7 +96,7 @@ test_that("upload data and fetching processing options", {
   expect_true(file.exists(file.path(outputDir, "fileInfo.json")))
   expect_equal(
     list.load(file.path(outputDir, "fileInfo.json")),
-    list(date = "2019-08-31", device = "devicename", additionalInfo = "some info")
+    list(date = "2019-08-31", device = "device A (code A)", additionalInfo = "some info")
   )
 })
 
@@ -112,7 +114,8 @@ test_that("no processing options saved for uploaded dataset", {
   input <- list(
     file = tibble(name = c("file name"), datapath = c(filePath)),
     name = "dataset A",
-    info = "some info"
+    info = "some info",
+    device = "some device"
   )
   
   messageExpected <- "Error: Could not find processing options for the uploaded dataset. (unique id: abc.def)"
@@ -138,7 +141,8 @@ test_that("no unique identifier in uploaded dataset", {
   input <- list(
     file = tibble(name = c("file name"), datapath = c(filePath)),
     name = "dataset A",
-    info = "some info"
+    info = "some info",
+    device = "abc"
   )
   
   messageExpected <- "Error: No unique identifier found in the uploaded dataset."
@@ -176,7 +180,8 @@ test_that("dataset with same name exists already", {
   input <- list(
     file = tibble(name = c("file name"), datapath = c(filePath)),
     name = "dataset A",
-    info = "some info"
+    info = "some info",
+    device = "abc"
   )
   
   messageActual <- uploadDataset(input, "Project A", basePath)

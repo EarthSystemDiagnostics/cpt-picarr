@@ -18,8 +18,8 @@ pageUploadDataUI <- function(id){
     
     wellPanel(
       fileInput(ns("file"), "Select a file to upload"),
-      textOutput(ns("device")), br(),
       textInput(ns("name"), "Name the dataset"),
+      selectInput(ns("device"), "What device was this data measured with?", choices = c()),
       textAreaInput(ns("info"), "Information about the dataset (optional)"), br(),
       actionButton(ns("upload"), "Upload the dataset", style = blue),
       textOutput(ns("helpMessage"))
@@ -50,9 +50,9 @@ pageUploadData <- function(input, output, session, project, serverEnvironment){
   # display currently loaded project
   output$projectName <- renderText(sprintf("Project: %s", project()))
   
-  # display detected device name
-  output$device <- renderText(
-    sprintf("Detected measurement instrument: %s", getDevice(input$file$name)))
+  # update list of possible devices
+  updateSelectInput(
+    session, "device", choices = map(getDevices(), ~ sprintf("%s (%s)", .$name, .$code)))
   
   # auto fill in name field when file is uploaded
   observeEvent(input$file, {
@@ -78,10 +78,12 @@ uploadDataset <- function(input, project, basePath = BASE_PATH){
   
   file <- input$file
   name <- input$name
+  device <- input$device
   
   # exit early if required fields are missing
   if (!isTruthy(file)) return("You need to upload a file before clicking this button.")
   if (!isTruthy(name)) return("You need to name the dataset before clicking this button.")
+  if (!isTruthy(device)) return("You need to select a device before clicking this button.")
   
   fileName <- file$name
   filePath <- file$datapath
@@ -106,7 +108,7 @@ uploadDataset <- function(input, project, basePath = BASE_PATH){
     return(sprintf("Upload aborted. A dataset with the same name exists already. (path: %s)", outputDir))
   
   saveData(outputDir, data, fileName, processingOptions, sampleDescription)
-  createInfoFile(outputDir, data, fileName, input$info)
+  createInfoFile(outputDir, data, device, input$info)
   
   return(sprintf("Dataset sucessfully uploaded. Processing Options and 
                  sample descriptions were found. (The data is in %s)", outputDir))
@@ -135,13 +137,10 @@ saveData <- function(outputDir, data, fileName, processingOptions, sampleDescrip
   write_csv(sampleDescription, file.path(outputDir, "sampleDescription.csv"))
 }
 
-createInfoFile <- function(outputDir, data, fileName, info){
-  
-  date   <- getDate(data)
-  device <- getDevice(fileName)
+createInfoFile <- function(outputDir, data, device, info){
   
   list.save(
-    list(date = date, device = device, additionalInfo = info),
+    list(date = getDate(data), device = device, additionalInfo = info),
     file.path(outputDir, "fileInfo.json")
   )
 }
@@ -151,8 +150,4 @@ getDate <- function(data){
     lubridate::date() %>%
     first() %>%
     as.character()
-}
-
-getDevice <- function(fileName){
-  str_extract(fileName, "^[^_]+(?=_)")
 }
