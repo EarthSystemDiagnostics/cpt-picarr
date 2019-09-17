@@ -10,5 +10,5 @@ getDevices <- function(basePath = BASE_PATH){
 }
 
 getDevicesAsStrings <- function(basePath = BASE_PATH){
-  map(getDevices(basePath), ~ sprintf("%s (%s)", .$name, .$code))
+  map_chr(getDevices(basePath), ~ sprintf("%s (%s)", .$name, .$code))
 }

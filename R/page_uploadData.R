@@ -19,7 +19,7 @@ pageUploadDataUI <- function(id){
     wellPanel(
       fileInput(ns("file"), "Select a file to upload"),
       textInput(ns("name"), "Name the dataset"),
-      selectInput(ns("device"), "What device was this data measured with?", choices = c()),
+      selectInput(ns("device"), "What device was this data measured with?", choices = c(""), selected = NULL),
       textAreaInput(ns("info"), "Information about the dataset (optional)"), br(),
       actionButton(ns("upload"), "Upload the dataset", style = blue),
       textOutput(ns("helpMessage"))
@@ -51,11 +51,12 @@ pageUploadData <- function(input, output, session, project, serverEnvironment){
   output$projectName <- renderText(sprintf("Project: %s", project()))
   
   # update list of possible devices
-  updateSelectInput(session, "device", choices = getDevicesAsStrings())
+  updateSelectInput(session, "device", choices = c("", getDevicesAsStrings()))
   
-  # auto fill in name field when file is uploaded
+  # auto fill in name and device when file is uploaded
   observeEvent(input$file, {
     updateTextInput(session, "name", value = input$file$name)
+    updateSelectInput(session, "device", selected = getDeviceFromFilename(input$file$name))
   })
   
   observeEvent(input$upload, {
@@ -149,4 +150,11 @@ getDate <- function(data){
     lubridate::date() %>%
     first() %>%
     as.character()
+}
+
+getDeviceFromFilename <- function(fileName){
+  
+  fileCodeParsed <- str_extract(fileName, "^[^_]+")
+  possibleDevices <- list.filter(getDevicesAsStrings(), ~ grepl(fileCodeParsed, ., fixed = T))
+  return(first(possibleDevices))
 }
