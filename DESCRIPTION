@@ -12,7 +12,6 @@ Imports:
     rlist
 Suggests:
     testthat,
-    shinytest,
     devtools
 Remotes:
     EarthSystemDiagnostics/piccr@dev
