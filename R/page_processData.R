@@ -21,7 +21,10 @@ pageProcessDataUI <- function(id){
     
     wellPanel(
       h4("Setup and Options"), br(),
-      selectizeInput(ns("datasetNames"), "Select one or more datasets to process", choices = c(), multiple = TRUE),
+      radioButtons(ns("selectionType"), "Select datasets by name or by date?", 
+                   choices = list("Select datasets by name" = "name", "Select datasets by date" = "date"),
+                   selected = NA),
+      uiOutput(ns("selectionSpace")),
       radioButtons(ns("useMemoryCorrection"), "Use memory correction?", c("Yes" = TRUE, "No" = FALSE)),
       radioButtons(ns("driftAndCalibration"), "Drift correction and calibration options", 
                    choiceNames = list(
@@ -81,7 +84,8 @@ pageProcessData <- function(input, output, session, project, serverEnvironment, 
   rv$processedData <- NULL  # type: nested list (as output by processDatasetsWithPiccr)
   rv$processingSuccessful <- FALSE  # type: logical
   rv$datasetForPlottingRaw <- NULL  # type: data.frame
-  rv$datasetForPlottingProcessed <- NULL  # type: dat.frame
+  rv$datasetForPlottingProcessed <- NULL  # type: data.frame
+  rv$datasetNames <- c()  # type: vector of character vectors
   
   # create a namespace function using the id passed by the frontend
   ns <- reactive(NS(isolate(input$id)))
@@ -91,27 +95,44 @@ pageProcessData <- function(input, output, session, project, serverEnvironment, 
   # display currently loaded project
   output$projectName <- renderText(sprintf("Project: %s", project()))
   
-  # update the list of selectable datasets when a new 
+  # update the list of selectable datasets when a 
   # project is loaded or a dataset is uploaded.
   observe({
-    # add dependency on the reactive expression projectDataChanged
+    # update list of selectable datasets when a selection 
+    # type is chosen or a project is loaded
     force(projectDataChanged()) 
+    force(input$selectionType)
     
     datasets <- getNamesOfDatasetsInProject(project())
     updateSelectizeInput(session, "datasetNames", choices = datasets)
     flog.debug("updated dataset selection on page 'process data' (project : %s)", project())
   })
   
-  # update possible choices for number of injections to average over
+  # keep rv$datasetNames up to date
   observeEvent(input$datasetNames, {
-    datasets <- loadSelectedDatasets(input$datasetNames, project())
+    rv$datasetNames <- input$datasetNames
+    flog.debug("Selected datasets: %s", paste(rv$datasetNames, collapse = ", "))
+  })
+  observeEvent(input$dateRange, {
+    rv$datasetNames <- getDatasetsInDateRange(input$dateRange, project())
+    flog.debug("Selected datasets: %s", paste(rv$datasetNames, collapse = ", "))
+    output$datesSelectedMessage <- renderText(
+      sprintf("%s datasets in this timespan: %s", length(rv$datasetNames), 
+              paste(rv$datasetNames, collapse = ", ")))
+  })
+  
+  # update possible choices for number of injections to average over
+  observeEvent(rv$datasetNames, {
+    
+    req(rv$datasetNames)
+    datasets <- loadSelectedDatasets(rv$datasetNames, project())
     
     # get the smallest number of injections for any sample
     minInjCountsSelectedDatasets <- map_dbl(datasets, ~ {
       vec <- .$`Inj Nr`
       min(c(vec[vec > lead(vec)], last(vec)), na.rm = T)
     })
-    minInjCount <- min(minInjCountsSelectedDatasets)
+    minInjCount <- min(minInjCountsSelectedDatasets, na.rm = TRUE)
     
     updateSelectInput(session, "averageOverInj", choices = c("all", 1:minInjCount))
   })
@@ -126,6 +147,23 @@ pageProcessData <- function(input, output, session, project, serverEnvironment, 
     # update processed data
     rv$datasetForPlottingProcessed <- rv$processedData[[input$datasetForPlotting]]$processed$data
     flog.debug("update rv$datasetForPlottingProcessed")
+  })
+  
+  # --------------- RENDER DATASET SELECTION SECTION -------------
+  
+  observeEvent(input$selectionType, {
+    if (input$selectionType == "date")
+      element <- tagList(
+        dateRangeInput(ns()("dateRange"), "Process all the data in this timespan"),
+        textOutput(ns()("datesSelectedMessage")),
+        br()
+      )
+    else
+      element <- selectizeInput(
+        ns()("datasetNames"), "Select one or more datasets to process", 
+        choices = c(), multiple = TRUE)
+    
+    output$selectionSpace <- renderUI(element)
   })
   
   # --------------- RENDER PLOTS SECTION DYNAMICALLY --------------
@@ -158,7 +196,7 @@ pageProcessData <- function(input, output, session, project, serverEnvironment, 
   
   observeEvent(input$doProcess, {
     
-    datasetNames <- input$datasetNames
+    datasetNames <- rv$datasetNames
     req(datasetNames)
     
     # When doing consecutive runs, the help message should "reappear" for each run
@@ -402,3 +440,20 @@ downloadProcessedData <- function(file, processedData){
   file.remove(file)
   zip(file, filenames)
 }
+
+#' @param dateRange Vector of Date objects. Length two. 
+getDatasetsInDateRange <- function(dateRange, project, basePath = BASE_PATH){
+  
+  req(dateRange)
+  
+  dateInterval <- interval(first(dateRange), last(dateRange))
+  projectData <- loadProjectData(project, basePath)
+  datasetNames <- map(names(projectData), ~ {
+    date <- ymd(projectData[[.]]$date)
+    if (date %within% dateInterval) return(.)
+  })
+  datasetNames <- list.filter(datasetNames, ~ !is.null(.))
+  datasetNames <- as.character(datasetNames)
+  
+  return(datasetNames)
+} 
