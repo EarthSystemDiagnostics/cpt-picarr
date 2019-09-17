@@ -106,14 +106,17 @@ server <- function(input, output, session){
   # header should only display 'Home' at the start
   goToPage("Home", environment())
   
-  rv <- reactiveValues()
-  # Reactive value that should be set by the submodules in order to
+  # Reactive values that should be set by the submodules in order to
   # realize shared state between those modules.
+  rv <- reactiveValues()
   rv$project <- NULL
-  rv$projectDataChanged <- NULL
+  rv$projectDataChanged <- 1
+  rv$devicesUpdated <- 1
+  
   # reactive expression to pass to modules
   project <- reactive({rv$project})
   projectDataChanged <- reactive({rv$projectDataChanged})
+  devicesUpdated <- reactive({rv$devicesUpdated})
   
   # ------------- CALL MODULES -------------
   
@@ -136,6 +139,7 @@ server <- function(input, output, session){
   callModule(
     pageUploadData, "uploadData", 
     project = project, 
+    devicesUpdated = devicesUpdated,
     serverEnvironment = ownEnvir
   )
   callModule(
@@ -146,6 +150,7 @@ server <- function(input, output, session){
   )
   callModule(
     pageInstrumentPerformance, "instPerf",
+    devicesUpdated = devicesUpdated,
     serverEnvironment = ownEnvir
   )
   callModule(

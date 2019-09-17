@@ -65,6 +65,13 @@ pageManageDevices <- function(input, output, session, serverEnvironment){
   rv <- reactiveValues()
   rv$devicesUpdated <- 1
   
+  # ------------ SIGNAL UPDATE TO OTHER MODULES --------
+  
+  observeEvent(rv$devicesUpdated, {
+    evalq(rv$devicesUpdated <- rv$devicesUpdated + 1, envir = serverEnvironment)
+    flog.debug("signaling update of known devices")
+  })
+  
   # ------------ DISPLAY KNOWN DEVICES -------
   
   output$knownDevices <- renderUI({

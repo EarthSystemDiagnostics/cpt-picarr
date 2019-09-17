@@ -38,6 +38,8 @@ pageUploadDataUI <- function(id){
 #' @param session Shiny session
 #' @param project A reactive expression. 'project()' evaluates to a 
 #'                String -> the name of the currently loaded project
+#' @param devicesUpdated A reactive expression. Is invalidated
+#'                       when a new device is added.
 #' @param serverEnvironment An environment. The environment of the 
 #'                          server function that calls this module.
 #'                          Used to execute code in the environment of the 
@@ -45,13 +47,17 @@ pageUploadDataUI <- function(id){
 #'                          switch between pages).
 #'
 #' @return No explicit return value
-pageUploadData <- function(input, output, session, project, serverEnvironment){
+pageUploadData <- function(input, output, session, project, devicesUpdated, serverEnvironment){
   
   # display currently loaded project
   output$projectName <- renderText(sprintf("Project: %s", project()))
   
   # update list of possible devices
-  updateSelectInput(session, "device", choices = c("", getDevicesAsStrings()))
+  updateSelectizeInput(session, "device", choices = c("", getDevicesAsStrings()))
+  observeEvent(
+    devicesUpdated(), 
+    updateSelectizeInput(session, "device", choices = c("", getDevicesAsStrings()))
+  )
   
   # auto fill in name and device when file is uploaded
   observeEvent(input$file, {

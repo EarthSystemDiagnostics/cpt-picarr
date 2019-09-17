@@ -41,6 +41,8 @@ pageInstrumentPerformanceUI <- function(id){
 #' @param input Shiny inputs
 #' @param output Shiny outputs
 #' @param session Shiny session
+#' @param devicesUpdated A reactive expression. Is invalidated
+#'                       when a new device is added.
 #' @param serverEnvironment An environment. The environment of the 
 #'                          server function that calls this module.
 #'                          Used to execute code in the environment of the 
@@ -48,11 +50,15 @@ pageInstrumentPerformanceUI <- function(id){
 #'                          switch between pages).
 #'
 #' @return No explicit return value
-pageInstrumentPerformance <- function(input, output, session, serverEnvironment){
+pageInstrumentPerformance <- function(input, output, session, devicesUpdated, serverEnvironment){
   
-  # ------------ INITIALIZATION -----------
+  # ------------ RENDER SELECTION OPTIONS -----------
   
   updateSelectizeInput(session, "instruments", choices = getDevicesAsStrings())
+  observeEvent(
+    devicesUpdated(), 
+    updateSelectizeInput(session, "instruments", choices = getDevicesAsStrings())
+  )
   
   # ------------ DISPLAY HELP MESSAGE ----------
   
