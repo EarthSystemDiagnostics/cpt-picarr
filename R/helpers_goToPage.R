@@ -29,6 +29,8 @@ goToPage <- function(targetPage, serverEnvir){
     hideTab("app", target = "Generate a sample description", session = session)
     hideTab("app", target = "Upload measurement data", session = session)
     hideTab("app", target = "Process measurement data", session = session)
+    hideTab("app", target = "Instrument performance", session = session)
+    hideTab("app", target = "Manage devices", session = session)
     
     showTab("app", target = .targetPage, session = session)
     

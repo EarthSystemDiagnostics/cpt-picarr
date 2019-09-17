@@ -17,23 +17,41 @@ pageHomeUI <- function(id){
     h2("Welcome to Cpt. Picarr!"),
     h4("What do you want to do today?"),
     
-    wellPanel(
-      h3("Load an existing project"),
-      p("See information and data for an existing project. Next you can generate 
-              a sample description, upload measurement data, or process measurement data."),
-      selectInput(ns("projectToLoad"), "Choose a project", c()),
-      actionButton(ns("loadProject"), "Load selected project", style = blue)
-    ),
-    
-    wellPanel(
-      h3("Create a new project"),
-      p("Create a new projecte to manage related data."),
-      textInput(ns("projectName"), "Project name"),
-      textInput(ns("projectPeople"), "People involved (optional)"),
-      textAreaInput(ns("projectAdditionalInfo"), "Additional info (optional)"),
-      dateInput(ns("projectDate"), "Expedition date (optional)", value = NA),
-      actionButton(ns("createProject"), "Create new project", style = blue),
-      textOutput(ns("infoMessage"))
+    fluidRow(
+      column(4,
+        wellPanel(
+          h3("Load an existing project"),
+          p("See information and data for an existing project. Next you can generate 
+                  a sample description, upload measurement data, or process measurement data."),
+          selectInput(ns("projectToLoad"), "Choose a project", c()),
+          actionButton(ns("loadProject"), "Load selected project", style = blue)
+        )
+      ),
+      column(4,
+        wellPanel(
+          h3("Create a new project"),
+          p("Create a new projecte to manage related data."),
+          textInput(ns("projectName"), "Project name"),
+          textInput(ns("projectPeople"), "People involved (optional)"),
+          textAreaInput(ns("projectAdditionalInfo"), "Additional info (optional)"),
+          dateInput(ns("projectDate"), "Expedition date (optional)", value = NA),
+          actionButton(ns("createProject"), "Create new project", style = blue),
+          textOutput(ns("infoMessage"))
+        )
+      ),
+      column(4,
+        wellPanel(
+          h3("Instrument performance"),
+          p("Look at cross-project statistics to analyze the performance 
+            of your measurement instruments over time."),
+          actionButton(ns("goToInstrumentPerformance"), "Go to page 'Instrument performance'", style = blue)
+        ),
+        wellPanel(
+          h3("Manage devices"),
+          p("List known isotope measurement devices or add a new device."),
+          actionButton(ns("goToManageDevices"), "Manage devices", style = blue)
+        )
+      )
     )
   )
 }
@@ -93,6 +111,14 @@ pageHome <- function(input, output, session, serverEnvironment){
       setProject(name, serverEnvironment)
       goToPage("Project", serverEnvironment)
     }
+  })
+  
+  observeEvent(input$goToInstrumentPerformance, {
+    goToPage("Instrument performance", serverEnvironment)
+  })
+  
+  observeEvent(input$goToManageDevices, {
+    goToPage("Manage devices", serverEnvironment)
   })
 }
 

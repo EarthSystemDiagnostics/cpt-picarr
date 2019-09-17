@@ -39,8 +39,9 @@ BASE_PATH <- list.load(configPath)$BASE_PATH
 # set BASE_PATH in global environemnt to prevent namespacing issues
 assign("BASE_PATH", BASE_PATH, envir = globalenv())
 
-# Initialize the directory structure. 
+# ------------------ INITIALIZE DIRECTORY STRUCTURE ---------------
 # This is most useful when the app is run for the first time.
+
 dir.create(file.path(BASE_PATH, "processingOptions"), recursive = TRUE, showWarnings = FALSE)
 
 # ------------------ UI AND SERVER DEFINITIONS FOR THE APP -------------
@@ -72,6 +73,14 @@ ui <- navbarPage(
     tabPanel(
       "Upload measurement data",
       pageUploadDataUI("uploadData")
+    ),
+    tabPanel(
+      "Instrument performance",
+      pageInstrumentPerformanceUI("instPerf")
+    ),
+    tabPanel(
+      "Manage devices",
+      pageManageDevicesUI("manageDevices")
     )
 )
 
@@ -97,35 +106,57 @@ server <- function(input, output, session){
   # header should only display 'Home' at the start
   goToPage("Home", environment())
   
-  rv <- reactiveValues()
-  # Reactive value that should be set by the submodules in order to
+  # Reactive values that should be set by the submodules in order to
   # realize shared state between those modules.
+  rv <- reactiveValues()
   rv$project <- NULL
-  rv$projectDataChanged <- NULL
+  rv$projectDataChanged <- 1
+  rv$devicesUpdated <- 1
+  
   # reactive expression to pass to modules
   project <- reactive({rv$project})
   projectDataChanged <- reactive({rv$projectDataChanged})
+  devicesUpdated <- reactive({rv$devicesUpdated})
   
   # ------------- CALL MODULES -------------
   
   ownEnvir <- environment()
-  callModule(pageHome, "home", 
-             serverEnvironment = ownEnvir)
-  callModule(pageProject, "project", 
-             project = project, 
-             serverEnvironment = ownEnvir, 
-             projectDataChanged = projectDataChanged)
-  callModule(pageGenerateSampleDescr, "sampleDescription", 
-             project = project, 
-             serverEnvironment = ownEnvir)
-  callModule(pageUploadData, "uploadData", 
-             project = project, 
-             serverEnvironment = ownEnvir)
-  callModule(pageProcessData, "processData", 
-             project = project, 
-             serverEnvironment = ownEnvir, 
-             projectDataChanged = projectDataChanged)
-  
+  callModule(
+    pageHome, "home", 
+    serverEnvironment = ownEnvir
+  )
+  callModule(
+    pageProject, "project", 
+    project = project, 
+    serverEnvironment = ownEnvir, 
+    projectDataChanged = projectDataChanged
+  )
+  callModule(
+    pageGenerateSampleDescr, "sampleDescription", 
+    project = project, 
+    serverEnvironment = ownEnvir
+  )
+  callModule(
+    pageUploadData, "uploadData", 
+    project = project, 
+    devicesUpdated = devicesUpdated,
+    serverEnvironment = ownEnvir
+  )
+  callModule(
+    pageProcessData, "processData", 
+    project = project, 
+    serverEnvironment = ownEnvir, 
+    projectDataChanged = projectDataChanged
+  )
+  callModule(
+    pageInstrumentPerformance, "instPerf",
+    devicesUpdated = devicesUpdated,
+    serverEnvironment = ownEnvir
+  )
+  callModule(
+    pageManageDevices, "manageDevices",
+    serverEnvironment = ownEnvir
+  )
 }
 
 shinyApp(ui, server)
