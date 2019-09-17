@@ -187,3 +187,41 @@ loadProjectInfo <- function(projectName, basePath = BASE_PATH){
   flog.debug("loading project info: %s", path)
   rlist::list.load(path)
 }
+
+downloadProcessedDataAsZip <- function(project, outputFile, basePath = BASE_PATH){
+  
+  # temp dir to store processed data for zipping
+  temp <- "tempDirForZipping"
+  unlink(temp, recursive = TRUE)
+  dir.create(temp)
+  on.exit(unlink(temp, recursive = TRUE))
+  
+  projDataPath <- file.path(basePath, project, "data")
+  datasetNames <- list.dirs(projDataPath, recursive = FALSE, full.names = FALSE)
+  
+  walk(datasetNames, ~ {
+    processedFile <- file.path(projDataPath, ., "processed.csv")
+    if(file.exists(processedFile)){
+      path <- file.path(temp, if(endsWith(., ".csv")) . else str_c(., ".csv"))
+      file.copy(processedFile, path)
+    }
+  })
+  
+  filesToZip <- list.files(temp, full.names = TRUE)
+  zip(outputFile, filesToZip, flags = "-r9Xj")
+}
+
+downloadProcessedDataSingleFile <- function(project, outputFile, basePath = BASE_PATH){
+  
+  projDataPath <- file.path(basePath, project, "data")
+  processedDatasets <- list.files(
+    projDataPath, pattern = "*processed.csv", full.names = TRUE, recursive = TRUE)
+  datasetNames <- map_chr(processedDatasets, ~ str_extract(., "(?<=/)[^/]+(?=/processed.csv)"))
+  
+  allProcessedData <- map(processedDatasets, read_csv) %>%
+    map2(., datasetNames, ~ {.x$dataset <- .y; .x}) %>%
+    do.call(rbind, .) %>%
+    data.frame()
+  
+  write_csv(allProcessedData, outputFile)
+}
