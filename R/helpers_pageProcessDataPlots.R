@@ -15,7 +15,7 @@ pageProcessDataPlotsUI <- function(id){
     fluidRow(
       column(3,
              
-        p(strong("data")),
+        p(strong("Data")),
         actionButton(ns("dataRaw"), "Raw"),
         actionButton(ns("dataMemoryCorrected"), "Memory corrected"),
         actionButton(ns("dataCalibrated"), "Calibrated"),
@@ -24,20 +24,20 @@ pageProcessDataPlotsUI <- function(id){
         
         hr(),
         
-        p(strong("injection stats")),
+        p(strong("Injection stats")),
         actionButton(ns("injWaterLevel"), "Water level"),
         actionButton(ns("injStdDev"), "Standard deviation"),
         
         hr(),
         
-        p(strong("sample stats")),
+        p(strong("Sample stats")),
         actionButton(ns("sampleWaterLevel"), "Water level"),
         actionButton(ns("sampleStdDev"), "Standard deviation"),
         actionButton(ns("sampleDevFromTrue"), "Deviation from true value (for standards)"),
         
         hr(),
         
-        p(strong("file stats")),
+        p(strong("File stats")),
         actionButton(ns("fileGeneralStats"), "General stats"),
         actionButton(ns("fileMemoryCorrection"), "Memory correction"),
         actionButton(ns("fileCalibration"), "Calibration"),
@@ -80,4 +80,8 @@ pageProcessDataPlots <- function(input, output, session, id,
       .[[1]]
     flog.debug("updated dataset to plot")
   })
+  
+  # ------------------- PLOTS -------------------
+  
+  # 
 }
