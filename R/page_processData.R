@@ -22,7 +22,7 @@ pageProcessDataUI <- function(id){
     pageProcessDataOptionsUI(ns("options")),
     
     wellPanel(
-      h4("Plots and tables"),
+      h4("Quality control stats"),
       uiOutput(ns("plots"))
     ),
     
