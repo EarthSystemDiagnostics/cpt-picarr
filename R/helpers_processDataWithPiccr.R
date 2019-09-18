@@ -29,7 +29,18 @@ processDatasets <- function(datasets, processingOptions, config){
 
 processSingleDataset <- function(dataset, processingOptions, config){
   config$standards <- getOptionsAndTrueValuesForStandards(processingOptions)
-  piccr::processData(list(data = dataset), config)
+  
+  # Output mock data because the new interface is not yet implemented in piccr
+  if (file.exists("piccrMockOutput")) 
+    load("piccrMockOutput")
+  else if (file.exists("../piccrMockOutput"))
+    load("../piccrMockOutput")
+  else
+    load("../../piccrMockOutput")
+  
+  return(piccrMockOutput)
+  
+  # piccr::processData(list(data = dataset), config)
 }
 
 getOptionsAndTrueValuesForStandards <- function(processingOptions){
