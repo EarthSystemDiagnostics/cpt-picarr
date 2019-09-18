@@ -108,16 +108,43 @@ pageProcessDataPlots <- function(input, output, session, id,
     
     description <- p(strong("Processed data: "), "The final data from averaging across n injections.")
     data <- rv$dataToPlot$processed
-    
     output$description <- renderUI(description)
-    output$plotD18O    <- renderPlot(ggplot(data, mapping = aes(Line, `delta.O18`)) + geom_point() + labs(title = "delta O-18"))
-    output$plotDD      <- renderPlot(ggplot(data, mapping = aes(Line, `delta.H2`)) + geom_point() + labs(title = "delta H2"))
+    output$plotD18O    <- renderPlot(ggplot(data, mapping = aes(Line, `delta.O18`)) + geom_point() + ggtitle("delta O-18"))
+    output$plotDD      <- renderPlot(ggplot(data, mapping = aes(Line, `delta.H2`)) + geom_point() + ggtitle("delta H2"))
     output$table       <- renderRHandsontable(rhandsontable(data, height = 500))
   })
   
   
   # ------------- INJECTION-LEVEL STATS ---------
   
+  observeEvent(input$injWaterLevel, {
+    output$plotOutput <- renderUI({
+      tagList(
+        p(strong("Water level: "), "Water vapour level (mean and standard deviation) during the injection."), br(),
+        plotOutput(ns("plotMean")), br(),
+        plotOutput(ns("plotStdDev")), br()
+      )
+    })
+    
+    data <- rv$dataToPlot$raw
+    output$plotMean <- renderPlot(ggplot(data, mapping = aes(Line, H2O_Mean)) + geom_point() + ggtitle("Mean water level"))
+    output$plotStdDev <- renderPlot(ggplot(data, mapping = aes(Line, H2O_SD)) + geom_point() + ggtitle("Std dev of water level"))
+  })
+  
+  observeEvent(input$injStdDev, {
+    output$plotOutput <- renderUI({
+      tagList(
+        p(strong("Standard deviation: "), "Standard deviation of the injection value for each measured",
+          "isotopic species from the measurement integration time in the cavity."), br(),
+        plotOutput(ns("plotD18O")), br(),
+        plotOutput(ns("plotDD"))
+      )
+    })
+    
+    data <- rv$dataToPlot$raw
+    output$plotD18O <- renderPlot(ggplot(data, mapping = aes(Line, `d(18_16)_SD`)) + geom_point() + ggtitle("Std dev for delta O-18"))
+    output$plotDD <- renderPlot(ggplot(data, mapping = aes(Line, `d(D_H)_SD`)) + geom_point() + ggtitle("Std dev for delta H2"))
+  })
   
 }
 
@@ -130,8 +157,8 @@ dataOutput <- function(output, data, description, ns){
   output$plotOutput  <- renderDataUI(ns)
   
   output$description <- renderUI(description)
-  output$plotD18O    <- renderPlot(ggplot(data, mapping = aes(Line, `d(18_16)Mean`)) + geom_point() + labs(title = "delta O-18"))
-  output$plotDD      <- renderPlot(ggplot(data, mapping = aes(Line, `d(D_H)Mean`)) + geom_point() + labs(title = "delta H2"))
+  output$plotD18O    <- renderPlot(ggplot(data, mapping = aes(Line, `d(18_16)Mean`)) + geom_point() + ggtitle("delta O-18"))
+  output$plotDD      <- renderPlot(ggplot(data, mapping = aes(Line, `d(D_H)Mean`)) + geom_point() + ggtitle("delta H2"))
   output$table       <- renderRHandsontable(rhandsontable(data, height = 500))
 }
 
