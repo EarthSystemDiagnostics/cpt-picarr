@@ -23,8 +23,18 @@ outputFile <- "test_download.zip"
 test_that("test download (1)", {
   
   processedData <- list(
-    df1 = list(processed = list(data = df1)),
-    df2 = list(processed = list(data = df2))
+    list(
+      list(
+        name = "df1",
+        processed = df1
+      )
+    ),
+    list(
+      list(
+        name = "df2",
+        processed = df2
+      )
+    )
   )
   
   downloadProcessedData(outputFile, processedData)
@@ -43,8 +53,18 @@ test_that("test download (1)", {
 test_that("test download (2)", {
   
   processedData <- list(
-    df1 = list(processed = list(data = df1)),
-    df3 = list(processed = list(data = df3))
+    list(
+      list(
+        name = "df1",
+        processed = df1
+      )
+    ),
+    list(
+      list(
+        name = "df3",
+        processed = df3
+      )
+    )
   )
   
   downloadProcessedData(outputFile, processedData)

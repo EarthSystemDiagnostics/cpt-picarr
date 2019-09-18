@@ -133,8 +133,7 @@ pageProcessDataOptions <- function(input, output, session, id, projectDataChange
   output$download <- downloadHandler(
     filename = "processed.zip",
     content = function(file) {
-      processedData <- rv$processedData
-      downloadProcessedData(file, processedData)
+      downloadProcessedData(file, rv$processedData)
     }
   )
   
@@ -161,9 +160,10 @@ downloadProcessedData <- function(file, processedData){
   on.exit(setwd(owd))
   
   flog.debug("Writing files")
-  filenames <- names(processedData)
-  walk(filenames, ~ write_csv(processedData[[.]]$processed$data, .))
-  flog.debug(str_c("Filenames: ", do.call(paste, as.list(filenames))))
+  walk(processedData, ~ write_csv(.[[1]]$processed, .[[1]]$name))
+  
+  filenames <- map_chr(processedData, ~ .[[1]]$name)
+  flog.debug(str_c("Filenames: ", paste(filenames, collapse = ", ")))
   
   flog.debug("Creating zip archive")
   # zip does not override existing files
