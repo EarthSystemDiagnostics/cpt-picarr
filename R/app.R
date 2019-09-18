@@ -144,6 +144,7 @@ server <- function(input, output, session){
   )
   callModule(
     pageProcessData, "processData", 
+    id = "processData",
     project = project, 
     serverEnvironment = ownEnvir, 
     projectDataChanged = projectDataChanged

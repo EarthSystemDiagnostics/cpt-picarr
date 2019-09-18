@@ -19,42 +19,14 @@ pageProcessDataUI <- function(id){
     h2("Process isotope measurement data"),
     textOutput(ns("projectName")), br(),
     
-    wellPanel(
-      h4("Setup and Options"), br(),
-      radioButtons(ns("selectionType"), "Select datasets by name or by date?", 
-                   choices = list("Select datasets by name" = "name", "Select datasets by date" = "date"),
-                   selected = NA),
-      uiOutput(ns("selectionSpace")),
-      radioButtons(ns("useMemoryCorrection"), "Use memory correction?", c("Yes" = TRUE, "No" = FALSE)),
-      radioButtons(ns("driftAndCalibration"), "Drift correction and calibration options", 
-                   choiceNames = list(
-                     "Use linear drift correction and two-point calibration" ,
-                     "Use linear drift correction and three-point calibration",
-                     "Use double two-point calibration",
-                     "Use double three-point calibration",
-                     "Use only two-point calibration, without drift correction",
-                     "Use only three-point calibration, without drift correction"),
-                   choiceValues = list(
-                     # "x/y": x is the calibration flag, y indicates if three-point calibration is to be used.
-                     "1/F", "1/T", "2/F", "2/T", "0/F", "0/T"
-                   )),
-      selectizeInput(
-        ns("averageOverInj"), "Average over the last n injections (selecting datasets updates choices)", c("all")),
-      h4("All set up?"), br(),
-      actionButton(ns("doProcess"), "Process the data", style = blue),
-      downloadButton(ns("download"), "Download the processed data"),
-      textOutput(ns("helpMessage"))
-    ),
+    pageProcessDataOptionsUI(ns("options")),
     
     wellPanel(
       h4("Plots and tables"),
       uiOutput(ns("plots"))
     ),
     
-    actionButton(ns("goToPageProject"), "Back to page 'Project'"),
-    
-    # silently pass the given id to the server function
-    conditionalPanel("false", textInput(ns("id"), label = "", value = id))
+    actionButton(ns("goToPageProject"), "Back to page 'Project'")
   )
 }
 
@@ -76,384 +48,50 @@ pageProcessDataUI <- function(id){
 #'                           the displayed project data when the project data changes. 
 #'
 #' @return No explicit return value
-pageProcessData <- function(input, output, session, project, serverEnvironment, projectDataChanged){
+pageProcessData <- function(input, output, session, id, project, serverEnvironment, projectDataChanged){
   
-  # ---------------- INITIALIZE STATE -------------
+  # ---------------- CREATE OWN REACTIVE VALUES ---------
   
   rv <- reactiveValues()
-  rv$processedData <- NULL  # type: nested list (as output by processDatasetsWithPiccr)
-  rv$processingSuccessful <- FALSE  # type: logical
-  rv$datasetForPlottingRaw <- NULL  # type: data.frame
-  rv$datasetForPlottingProcessed <- NULL  # type: data.frame
-  rv$datasetNames <- c()  # type: vector of character vectors
+  rv$processedData <- NULL
+  rv$processingSuccessful <- FALSE
   
-  # create a namespace function using the id passed by the frontend
-  ns <- reactive(NS(isolate(input$id)))
+  processingSuccessful <- reactive({rv$processingSuccessful})
+  processedData <- reactive({rv$processedData})
   
-  # --------------- MANAGE STATE -------------
+  # create a namespace function
+  ns <- NS(id)
+
+  # --------------- DISPLAY PROJECT NAME -------------
   
-  # display currently loaded project
   output$projectName <- renderText(sprintf("Project: %s", project()))
   
-  # update the list of selectable datasets when a 
-  # project is loaded or a dataset is uploaded.
-  observe({
-    # update list of selectable datasets when a selection 
-    # type is chosen or a project is loaded
-    force(projectDataChanged()) 
-    force(input$selectionType)
-    
-    datasets <- getNamesOfDatasetsInProject(project())
-    updateSelectizeInput(session, "datasetNames", choices = datasets)
-    flog.debug("updated dataset selection on page 'process data' (project : %s)", project())
-  })
-  
-  # keep rv$datasetNames up to date
-  observeEvent(input$datasetNames, {
-    rv$datasetNames <- input$datasetNames
-    flog.debug("Selected datasets: %s", paste(rv$datasetNames, collapse = ", "))
-  })
-  observeEvent(input$dateRange, {
-    rv$datasetNames <- getDatasetsInDateRange(input$dateRange, project())
-    flog.debug("Selected datasets: %s", paste(rv$datasetNames, collapse = ", "))
-    output$datesSelectedMessage <- renderText(
-      sprintf("%s datasets in this timespan: %s", length(rv$datasetNames), 
-              paste(rv$datasetNames, collapse = ", ")))
-  })
-  
-  # update possible choices for number of injections to average over
-  observeEvent(rv$datasetNames, {
-    
-    req(rv$datasetNames)
-    datasets <- loadSelectedDatasets(rv$datasetNames, project())
-    
-    # get the smallest number of injections for any sample
-    minInjCountsSelectedDatasets <- map_dbl(datasets, ~ {
-      vec <- .$`Inj Nr`
-      min(c(vec[vec > lead(vec)], last(vec)), na.rm = T)
-    })
-    minInjCount <- min(minInjCountsSelectedDatasets, na.rm = TRUE)
-    
-    updateSelectInput(session, "averageOverInj", choices = c("all", 1:minInjCount))
-  })
-  
-  # update rv$datasetForPlotting when a dataset is selected
-  observeEvent(input$datasetForPlotting, {
-    # update raw data
-    path <- getPathToRawData(input$datasetForPlotting, project())
-    rv$datasetForPlottingRaw <- read_csv(path)
-    flog.debug("update rv$datasetForPlottingRaw. new dataset: %s", path)
-    
-    # update processed data
-    rv$datasetForPlottingProcessed <- rv$processedData[[input$datasetForPlotting]]$processed$data
-    flog.debug("update rv$datasetForPlottingProcessed")
-  })
-  
-  # --------------- RENDER DATASET SELECTION SECTION -------------
-  
-  observeEvent(input$selectionType, {
-    if (input$selectionType == "date")
-      element <- tagList(
-        dateRangeInput(ns()("dateRange"), "Process all the data in this timespan"),
-        textOutput(ns()("datesSelectedMessage")),
-        br()
-      )
-    else
-      element <- selectizeInput(
-        ns()("datasetNames"), "Select one or more datasets to process", 
-        choices = c(), multiple = TRUE)
-    
-    output$selectionSpace <- renderUI(element)
-  })
-  
-  # --------------- RENDER PLOTS SECTION DYNAMICALLY --------------
+  # --------------- RENDER PLOTS SECTION --------------
   
   output$plots <- renderUI({
-    
-    if (!rv$processingSuccessful){
-      textOutput(ns()("plotsInfoMessage"))
+    if (!processingSuccessful()){
+      p("This section will contain plots and tables once you have processed some data.")
     } else {
-      tagList(
-        selectInput(ns()("datasetForPlotting"), "Which dataset would you like to plot?", choices = names(rv$processedData)),
-        actionButton(ns()("plotWaterLevel"), "water level"),
-        actionButton(ns()("plotStdDev"), "standard deviation"),
-        actionButton(ns()("tableRawData"), "raw data (as table)"),
-        actionButton(ns()("plotRawData"), "raw data (as plot)"),
-        actionButton(ns()("plotProcessedData"), "processed data"),
-        actionButton(ns()("plotMemory"), "memory"),
-        p("Not yet implemented:"),
-        actionButton(ns()("plotDeviationForStandards"), "deviation from true value for standards"),
-        actionButton(ns()("plotRawVsProcessed"), "raw vs. processed"),
-        actionButton(ns()("plotCalibration"), "calibration"),
-        actionButton(ns()("plotDrift"), "drift"),
-        hr(),
-        uiOutput(ns()("plotOutput"))
-      )
+      pageProcessDataPlotsUI(ns("plots"))
     }
   })
   
-  # --------------- REACT TO USER INPUT (PROCESSING AND DOWNLOAD) -------------------
-  
-  observeEvent(input$doProcess, {
-    
-    datasetNames <- rv$datasetNames
-    req(datasetNames)
-    
-    # When doing consecutive runs, the help message should "reappear" for each run
-    output$helpMessage <- renderText("")
-    Sys.sleep(1)
-    
-    tryCatch({
-      rv$processedData <- processDatasetsWithPiccr(datasetNames, input, project())
-      rv$processingSuccessful <- TRUE
-      saveProcessedDataOnServer(rv$processedData, project())
-      # signal to other modules that the project data has been changed
-      evalq(rv$projectDataChanged <- rv$projectDataChanged + 1, envir = serverEnvironment)
-      output$helpMessage <- renderText(
-        "Data processed successfully. Processed data saved on server.")
-    
-    }, error = function(errorMessage) {
-      output$helpMessage <- renderText(
-        "An error occured and the data could not be processed. See the logs for details.")
-      flog.error(errorMessage)
-    })
-  })
-  
-  output$download <- downloadHandler(
-    filename = "processed.zip",
-    content = function(file) {
-      processedData <- rv$processedData
-      downloadProcessedData(file, processedData)
-    }
-  )
+  # ---------------- NAVIGATION ------------------
   
   observeEvent(input$goToPageProject, goToPage("Project", serverEnvironment))
   
-  # --------------- PLOTS ---------------------
-  
-  output$plotsInfoMessage <- renderText("This section will contain plots and tables once you have processed some data.")
-  
-  # plot water level
-  observeEvent(input$plotWaterLevel, {
-    # ---- ui ----
-    output$plotOutput <- renderUI(plotOutput(ns()("plot")))
-    
-    # ---- server ----
-    output$plot <- renderPlot({
-      ggplot(rv$datasetForPlottingRaw, mapping = aes(x = Line, y = H2O_Mean)) + 
-        geom_point()
-    })
-  })
-  
-  # plot standard deviation
-  observeEvent(input$plotStdDev, {
-    # ---- ui ----
-    output$plotOutput <- renderUI(plotOutput(ns()("plot")))
-    
-    # ---- server ----
-    data <- rv$datasetForPlottingProcessed
-    
-    # create y-axis labels
-    data <- data %>% 
-      mutate(block = str_c(".block", block)) %>%
-      mutate(block = replace_na(block, "")) %>%
-      mutate(label = str_c(`Identifier 1`, block))
-    
-    # transform sd data, so that d18O and dD can be plotted in the same plot
-    data <- data %>%
-      gather("type", "sd", sd.O18, sd.H2)
-    
-    output$plot <- renderPlot({
-      ggplot(data, mapping = aes(x = sd, y = label, color = type)) + 
-        geom_point()
-    })
-  })
-  
-  # raw measurement data table
-  observeEvent(input$tableRawData, {
-
-    # ---- ui ----
-    output$plotOutput <- renderUI(rHandsontableOutput(ns()("table")))
-    
-    # ---- server ----
-    output$table <- renderRHandsontable(rhandsontable(rv$datasetForPlottingRaw))
-  })
-  
-  # plot processed measurement data
-  observeEvent(input$plotProcessedData, {
-    # ---- ui ----
-    output$plotOutput <- renderUI(rHandsontableOutput(ns()("table")))
-    
-    # ---- server ----
-    data <- rv$datasetForPlottingProcessed
-    output$table <- renderRHandsontable(rhandsontable(data))
-  })
-  
-  # plot memory coefficients
-  observeEvent(input$plotMemory, {
-    # ---- ui ----
-    output$plotOutput <- renderUI({
-      tagList(
-        plotOutput(ns()("plotMemCoeff")),
-        br(),
-        plotOutput(ns()("plotCompareD18O")),
-        br(),
-        plotOutput(ns()("plotCompareDD"))
-      )
-    })
-    
-    # ---- server ----
-    datasetForPlotting <- input$datasetForPlotting
-    memoryCorrected <- rv$processedData[[datasetForPlotting]]$memoryCorrected$data
-    
-    # gather and pre-process memory coefficient data
-    memoryCoefficients <- memoryCorrected$memoryCoefficients
-    memoryCoefficients <- memoryCoefficients %>%
-      rename(O18 = memoryCoeffD18O, H2 = memoryCoeffDD) %>%
-      gather("type", "coeff", O18, H2)
-    # plot memory coefficients
-    output$plotMemCoeff <- renderPlot({
-      ggplot(memoryCoefficients, mapping = aes(x = `Inj Nr`, y = coeff, color = type)) + 
-        geom_point() + 
-        geom_line() + 
-        labs(title = "Memory coefficients", x = "Injection Nr.", y = "memory coefficient") + 
-        scale_x_continuous(breaks = unique(memoryCoefficients$`Inj Nr`))
-    })
-    
-    # gather and pre-process measurement data for block 1 standards 
-    memoryCorrectedStandards <- memoryCorrected$datasetMemoryCorrected %>%
-      mutate(type = "memory corrected") %>%
-      filter(block == 1)
-    rawStandards <- rv$datasetForPlottingRaw %>% 
-      mutate(type = "raw") %>%
-      filter(Line %in% memoryCorrectedStandards$Line)
-    mergedData <- bind_rows(rawStandards, memoryCorrectedStandards)
-    # plot raw vs. memory corrected (d18O and dD)
-    output$plotCompareD18O <- renderPlot({
-      ggplot(mergedData) +
-        geom_point(mapping = aes(x = `Inj Nr`, y = `d(18_16)Mean`, color = type)) +
-        geom_path(mapping = aes(x = `Inj Nr`, y = `d(18_16)Mean`, color = type)) +
-        facet_grid(`Identifier 1` ~ ., scales = "free") +
-        labs(title = "Raw and memory corrected for block 1 standards (O18)")
-    })
-    output$plotCompareDD <- renderPlot({
-      ggplot(mergedData) +
-        geom_point(mapping = aes(x = `Inj Nr`, y = `d(D_H)Mean`, color = type)) +
-        geom_path(mapping = aes(x = `Inj Nr`, y = `d(D_H)Mean`, color = type)) +
-        facet_grid(`Identifier 1` ~ ., scales = "free") +
-        labs(title = "Raw and memory corrected for block 1 standards (H2)")
-    })
-  })
-  
-  observeEvent(input$plotRawData, {
-    # ---- ui ----
-    output$plotOutput <- renderUI(
-      tagList(
-        h4("delta O18"),
-        plotOutput(ns()("plot1")),
-        h4("delta H2"),
-        plotOutput(ns()("plot2"))
-      )
-    )
-    
-    # ---- server ----
-    output$plot1 <- renderPlot(
-      qplot(Line, `d(18_16)Mean`, data = rv$datasetForPlottingRaw))
-    output$plot2 <- renderPlot(
-      qplot(Line, `d(D_H)Mean`, data = rv$datasetForPlottingRaw))
-  })
-  
-}
-
-
-#######################
-# HELPERS
-#######################
-
-getNamesOfDatasetsInProject <- function(project, basePath = BASE_PATH){
-  
-  list.dirs(file.path(basePath, project, "data"), recursive = FALSE, full.names = FALSE)
-}
-
-processDatasetsWithPiccr <- function(datasetNames, input, project){
-  
-  datasets <- loadSelectedDatasets(datasetNames, project)
-  processingOptions <- loadSelectedProcessingOptions(datasetNames, project)
-  
-  # input$driftAndCalibration is in the form "X/Y" where X is the calibration flag 
-  # and Y indicates whether to use three-point calibration or not
-  calibrationFlag <- as.numeric(str_split(input$driftAndCalibration, "/")[[1]][[1]])
-  useThreePointCalibration <- as.logical(str_split(input$driftAndCalibration, "/")[[1]][[2]])
-  
-  processedData <- processDataWithPiccr(
-    datasets, processingOptions, input$useMemoryCorrection, 
-    calibrationFlag, useThreePointCalibration, input$averageOverInj
+  # ---------------- CALL SUBMODULES -------------
+  callModule(
+    pageProcessDataOptions, ns("options"),
+    id = "options",
+    projectDataChanged = projectDataChanged, 
+    project = project, 
+    serverEnvironment = environment()
   )
-  return(processedData)
+  callModule(
+    pageProcessDataPlots, ns("plots"), 
+    id = "plots",
+    processingSuccessful = processingSuccessful, 
+    processedData = processedData
+  )
 }
-
-saveProcessedDataOnServer <- function(processedData, project, basePath = BASE_PATH){
-  
-  datasetNames <- names(processedData)
-  walk(datasetNames, function(datasetName){
-    processedData <- processedData[[datasetName]]$processed$data
-    outputDir <- file.path(basePath, project, "data", datasetName)
-    dir.create(outputDir)
-    write_csv(processedData, file.path(outputDir, "processed.csv"))
-  })
-}
-
-loadSelectedDatasets <- function(selected, project, basePath = BASE_PATH){
-  
-  datasets <- map(selected, function(selected){
-    rawDataPath <- getPathToRawData(selected, project, basePath)
-    read_csv(rawDataPath)
-  })
-  names(datasets) <- selected
-  return(datasets)
-}
-
-loadSelectedProcessingOptions <- function(selected, project, basePath = BASE_PATH){
-  processingOptions <- map(selected, function(selected){
-    path <- file.path(basePath, project, "data", selected, "processingOptions.csv")
-    read_csv(path)
-  })
-  names(processingOptions) <- selected
-  return(processingOptions)
-}
-
-downloadProcessedData <- function(file, processedData){
-  
-  flog.info("Downloading data")
-  
-  #go to a temp dir to avoid permission issues
-  owd <- setwd(tempdir())
-  on.exit(setwd(owd))
-  
-  flog.debug("Writing files")
-  filenames <- names(processedData)
-  walk(filenames, ~ write_csv(processedData[[.]]$processed$data, .))
-  flog.debug(str_c("Filenames: ", do.call(paste, as.list(filenames))))
-  
-  flog.debug("Creating zip archive")
-  # zip does not override existing files
-  file.remove(file)
-  zip(file, filenames)
-}
-
-#' @param dateRange Vector of Date objects. Length two. 
-getDatasetsInDateRange <- function(dateRange, project, basePath = BASE_PATH){
-  
-  req(dateRange)
-  
-  dateInterval <- interval(first(dateRange), last(dateRange))
-  projectData <- loadProjectData(project, basePath)
-  datasetNames <- map(names(projectData), ~ {
-    date <- ymd(projectData[[.]]$date)
-    if (date %within% dateInterval) return(.)
-  })
-  datasetNames <- list.filter(datasetNames, ~ !is.null(.))
-  datasetNames <- as.character(datasetNames)
-  
-  return(datasetNames)
-} 
