@@ -179,7 +179,39 @@ pageProcessDataPlots <- function(input, output, session, id,
     output$table <- renderRHandsontable(rhandsontable(data))
   })
   
+  # -------------- FILE-LEVEL STATS ---------------
   
+  observeEvent(input$fileGeneralStats, {
+    output$plotOutput <- renderUI({
+      tagList(
+        p(strong("General stats")), br(),
+        p(strong("Deviation of quality control standard: "), "The specific deviation", 
+          "from the true value for the independent quality control standard."),
+        rHandsontableOutput(ns("table1")), br(),
+        p(strong("rmsd of deviations: "), "The root mean square deviation across the ",
+          "deviations of all measured standards from their true values."), br(),
+        rHandsontableOutput(ns("table2")), br(),
+        p(strong("Pooled standard deviation: "), "The pooled standard deviation ",
+          "across all measured samples and standards."),
+        rHandsontableOutput(ns("table3"))
+      )
+    })
+    output$table1 <- renderRHandsontable(rhandsontable(data.frame(rv$dataToPlot$deviationOfControlStandard)))
+    output$table2 <- renderRHandsontable(rhandsontable(data.frame(rv$dataToPlot$rmsdDeviationsFromTrue)))
+    output$table3 <- renderRHandsontable(rhandsontable(data.frame(rv$dataToPlot$pooledStdDev)))
+  })
+  
+  observeEvent(input$fileMemoryCorrection, {
+    
+  })
+  
+  observeEvent(input$fileCalibration, {
+    
+  })
+  
+  observeEvent(input$fileDriftCorrection, {
+    
+  })
 }
 
 ########################
