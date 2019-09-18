@@ -212,12 +212,11 @@ processDatasetsWithPiccr <- function(datasetNames, input, project){
 
 saveProcessedDataOnServer <- function(processedData, project, basePath = BASE_PATH){
   
-  datasetNames <- names(processedData)
-  walk(datasetNames, function(datasetName){
-    processedData <- processedData[[datasetName]]$processed$data
-    outputDir <- file.path(basePath, project, "data", datasetName)
+  walk(processedData, ~ {
+    data <- .[[1]]
+    outputDir <- file.path(basePath, project, "data", data$name)
     dir.create(outputDir)
-    write_csv(processedData, file.path(outputDir, "processed.csv"))
+    write_csv(data$processed, file.path(outputDir, "processed.csv"))
   })
 }
 
