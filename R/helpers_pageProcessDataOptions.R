@@ -148,7 +148,10 @@ signalSuccess <- function(serverEnvironment){
 }
 
 outputProcessedData <- function(processedData, serverEnvironment){
-  assign("rv$processedData", processedData, envir = serverEnvironment)
+  assign(".processedData", processedData, envir = serverEnvironment)
+  evalq(
+    rv$processedData <- .processedData, envir = serverEnvironment
+  )
 }
 
 downloadProcessedData <- function(file, processedData){
