@@ -10,7 +10,7 @@ pageProcessDataPlotsUI <- function(id){
   
   tagList(
     
-    selectInput(ns("datasetForPlotting"), "Which dataset would you like to plot?", choices = c()),
+    selectInput(ns("datasetForPlotting"), "Which dataset do you want to look at?", choices = c()),
     hr(),
     
     fluidRow(
@@ -79,7 +79,7 @@ pageProcessDataPlots <- function(input, output, session, id,
   
   # ------------------- PLOTS AND TABLES -------------------
   
-  # ----------- DATA -----------
+  # ------------- DATA --------------
   
   observeEvent(input$dataRaw, {
     description <- p(strong("Raw data: "), "The original measurement data before any processing was done.")
@@ -145,6 +145,40 @@ pageProcessDataPlots <- function(input, output, session, id,
     output$plotD18O <- renderPlot(ggplot(data, mapping = aes(Line, `d(18_16)_SD`)) + geom_point() + ggtitle("Std dev for delta O-18"))
     output$plotDD <- renderPlot(ggplot(data, mapping = aes(Line, `d(D_H)_SD`)) + geom_point() + ggtitle("Std dev for delta H2"))
   })
+  
+  # --------- SAMPLE-LEVEL STATS ------------
+  
+  observeEvent(input$sampleWaterLevel, {
+    # TODO
+  })
+  
+  observeEvent(input$sampleStdDev, {
+    output$plotOutput <- renderUI({
+      tagList(
+        p(strong("Standard deviation: "), "The standard deviation of the mean isotope value 
+          for each isotopic species of this sample/standard."), br(),
+        plotOutput(ns("plotD18O")), br(),
+        plotOutput(ns("plotDD"))
+      )
+    })
+    
+    data <- rv$dataToPlot$processed
+    output$plotD18O <- renderPlot(ggplot(data, mapping = aes(Line, sd.O18)) + geom_point() + ggtitle("Std dev for delta O-18"))
+    output$plotDD <- renderPlot(ggplot(data, mapping = aes(Line, sd.H2)) + geom_point() + ggtitle("Std dev for delta H2"))
+  })
+  
+  observeEvent(input$sampleDevFromTrue, {
+    output$plotOutput <- renderUI({
+      tagList(
+        p(strong("Deviation from true value: "), "The deviation from the true isotope value (only for standards)."), br(),
+        rHandsontableOutput(ns("table"))
+      )
+    })
+    
+    data <- rv$dataToPlot$deviationsFromTrue
+    output$table <- renderRHandsontable(rhandsontable(data))
+  })
+  
   
 }
 
