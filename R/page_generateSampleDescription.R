@@ -181,8 +181,10 @@ pageGenerateSampleDescr <- function(input, output, session, project, serverEnvir
   })
 
   output$download <- downloadHandler(
-    filename = "sample_description.csv",
-    content = function(file) {
+    filename = function(){
+      sprintf("%s_%s.csv", Sys.Date(), project())
+    },
+    content = function(file){
       
       data <- rv$sampleDescr
       rv$uniqueIdentifier <- generateUniqueIdentifer(data)
