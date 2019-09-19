@@ -55,9 +55,11 @@ pageProcessData <- function(input, output, session, id, project, serverEnvironme
   rv <- reactiveValues()
   rv$processedData <- NULL
   rv$processingSuccessful <- FALSE
+  rv$nInj <- "all"
   
   processingSuccessful <- reactive({rv$processingSuccessful})
   processedData <- reactive({rv$processedData})
+  nInj <- reactive({rv$nInj})
   
   # create a namespace function
   ns <- NS(id)
@@ -92,6 +94,7 @@ pageProcessData <- function(input, output, session, id, project, serverEnvironme
     pageProcessDataPlots, ns("plots"), 
     id = "plots",
     processingSuccessful = processingSuccessful, 
-    processedData = processedData
+    processedData = processedData,
+    nInj = nInj
   )
 }

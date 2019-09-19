@@ -31,7 +31,7 @@ pageProcessDataPlotsUI <- function(id){
         p(strong("Sample stats")),
         actionButton(ns("sampleWaterLevel"), "Water level"),
         actionButton(ns("sampleStdDev"), "Standard deviation"),
-        actionButton(ns("sampleDevFromTrue"), "Deviation from true value (for standards)")
+        actionButton(ns("sampleDevFromTrue"), "Deviation from true value")
       ),
       column(3,
         p(strong("File stats")),
@@ -49,7 +49,7 @@ pageProcessDataPlotsUI <- function(id){
 }
 
 pageProcessDataPlots <- function(input, output, session, id, 
-                                 processingSuccessful, processedData){
+                                 processingSuccessful, processedData, nInj){
 
     # ---------------- CREATE OWN REACTIVE VALUES ---------
   
@@ -149,7 +149,23 @@ pageProcessDataPlots <- function(input, output, session, id,
   # --------- SAMPLE-LEVEL STATS ------------
   
   observeEvent(input$sampleWaterLevel, {
-    # TODO
+    output$plotOutput <- renderUI({
+      tagList(
+        p(strong("Water level: "), "The mean water vapour level and its ",
+          "standard deviation for this sample/standard."), br(),
+        plotOutput(ns("plotMean")), br(),
+        plotOutput(ns("plotStdDev")), br(),
+        rHandsontableOutput(ns("table"))
+      )
+    })
+    
+    nInj <- # TODO
+    # use the calibrated data, because it has the column "block"
+    data <- getH2OMeanAndStdDev(rv$dataToPlot$calibrated, nInj())
+      
+    output$plotMean <- renderPlot(ggplot(data, mapping = aes(Line, H2OMean)) + geom_point() + ggtitle("Mean water level"))
+    output$plotStdDev <- renderPlot(ggplot(data, mapping = aes(Line, H2OSD)) + geom_point() + ggtitle("Std dev of mean water level"))
+    output$table <- renderRHandsontable(rhandsontable(data, height = 500))
   })
   
   observeEvent(input$sampleStdDev, {
@@ -237,4 +253,26 @@ renderDataUI <- function(ns){
       rHandsontableOutput(ns("table"))
     )
   })
+}
+
+getH2OMeanAndStdDev <- function(data, nInj){
+  if (nInj %in% c("all", -1)) {
+    aggregatedData <- data %>% 
+      group_by(`Identifier 1`, block) %>% 
+      summarise(H2OMean = mean(H2O_Mean), H2OSD = sd(H2O_Mean), Line = min(Line))
+  } else {
+    aggregatedData <- data %>%
+      group_by(`Identifier 1`, block) %>% 
+      slice((n()-nInj+1):n()) %>%
+      summarise(H2OMean = mean(H2O_Mean), H2OSD = sd(H2O_Mean), Line = min(Line))
+  }
+  orderedData <- aggregatedData %>%
+    arrange(Line) %>%
+    select(-Line) %>%
+    rowid_to_column("Line")
+  
+  # prevent type issues because Line is integer
+  orderedData$Line <- as.numeric(orderedData$Line)
+  
+  return(orderedData)
 }

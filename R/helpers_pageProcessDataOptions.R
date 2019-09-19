@@ -116,6 +116,7 @@ pageProcessDataOptions <- function(input, output, session, id, projectDataChange
       
       saveProcessedDataOnServer(rv$processedData, project())
       outputProcessedData(rv$processedData, serverEnvironment)
+      outputNInj(input$averageOverInj, serverEnvironment)
       signalSuccess(serverEnvironment)
       
       output$helpMessage <- renderText(
@@ -151,6 +152,13 @@ outputProcessedData <- function(processedData, serverEnvironment){
   assign(".processedData", processedData, envir = serverEnvironment)
   evalq(
     rv$processedData <- .processedData, envir = serverEnvironment
+  )
+}
+
+outputNInj <- function(nInj, serverEnvironment){
+  assign(".nInj", nInj, envir = serverEnvironment)
+  evalq(
+    rv$nInj <- .nInj, envir = serverEnvironment
   )
 }
 
