@@ -94,7 +94,11 @@ uploadDataset <- function(input, project, basePath = BASE_PATH){
   fileName <- file$name
   filePath <- file$datapath
   
-  data <- read_csv(filePath)
+  # files may not be encoded with UTF-8. Guess the encoding here to prevent errors later on
+  fileEncoding <- guess_encoding(path)[[1,1]]
+  
+  data <- read_csv(filePath, locale = locale(encoding = fileEncoding))
+  
   uniqueIdentifier <- getUniqueIdentifer(data)
   optionsPath <- file.path(basePath, "processingOptions", uniqueIdentifier)
   
