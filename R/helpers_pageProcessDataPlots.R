@@ -202,15 +202,15 @@ pageProcessDataPlots <- function(input, output, session, id,
   })
   
   observeEvent(input$fileMemoryCorrection, {
-    
+    # TODO
   })
   
   observeEvent(input$fileCalibration, {
-    
+    # TODO
   })
   
   observeEvent(input$fileDriftCorrection, {
-    
+    # TODO
   })
 }
 
