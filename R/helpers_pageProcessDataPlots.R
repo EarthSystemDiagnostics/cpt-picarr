@@ -214,7 +214,7 @@ pageProcessDataPlots <- function(input, output, session, id,
     })
     output$table1 <- renderRHandsontable(rhandsontable(data.frame(rv$dataToPlot$deviationOfControlStandard)))
     output$table2 <- renderRHandsontable(rhandsontable(data.frame(rv$dataToPlot$rmsdDeviationsFromTrue)))
-    output$table3 <- renderRHandsontable(rhandsontable(data.frame(rv$dataToPlot$pooledStdDev)))
+    output$table3 <- renderRHandsontable(rhandsontable(data.frame(rv$dataToPlot$pooledSD)))
   })
   
   observeEvent(input$fileMemoryCorrection, {
