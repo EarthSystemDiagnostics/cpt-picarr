@@ -50,7 +50,8 @@ getOptionsAndTrueValuesForStandards <- function(processingOptions){
                               o18_True = `True delta O18`,
                               H2_True = `True delta H2`, 
                               use_for_drift_correction = `Use for drift correction`, 
-                              use_for_calibration = `Use for calibration`)
+                              use_for_calibration = `Use for calibration`,
+                              use_as_control_standard = `Use as control standard`)
   processingOptionsAsList <- transpose(columnsRenamed)
   
   return(processingOptionsAsList)
