@@ -10,9 +10,15 @@ pageProcessDataPlotsUI <- function(id){
   
   tagList(
     
-    selectInput(ns("datasetForPlotting"), "Which dataset do you want to look at?", choices = c()),
     hr(),
     
+    p(strong("Overall measurement uncertainty: "), 
+      "The root mean square deviation of the deviation of the quality control standards."),
+    rHandsontableOutput(ns("overallUncertainty")),
+    
+    hr(),
+    
+    selectInput(ns("datasetForPlotting"), "Which dataset do you want to look at?", choices = c()),
     fluidRow(
       column(3,
         p(strong("Data")),
@@ -78,6 +84,14 @@ pageProcessDataPlots <- function(input, output, session, id,
   })
   
   # ------------------- PLOTS AND TABLES -------------------
+  
+  # ----- OVERALL UNCERTAINTY -------
+  
+  observeEvent(processingSuccessful(), {
+    
+    overallUncertainty <- calculateOverallUncertainty(processedData())
+    output$overallUncertainty <- renderRHandsontable(rhandsontable(overallUncertainty))
+  })
   
   # ------------- DATA --------------
   
@@ -275,4 +289,10 @@ getH2OMeanAndStdDev <- function(data, nInj){
   orderedData$Line <- as.numeric(orderedData$Line)
   
   return(orderedData)
+}
+
+calculateOverallUncertainty <- function(processedData){
+  rmsdD18O <- sqrt(mean(map_dbl(processedData, ~ .[[1]]$deviationOfControlStandard$d18O)^2))
+  rmsdDD   <- sqrt(mean(map_dbl(processedData, ~ .[[1]]$deviationOfControlStandard$dD)^2))
+  tibble(d18O = rmsdD18O, dD = rmsdDD)
 }
