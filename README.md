@@ -19,7 +19,7 @@ TODO: insert screenshots
 1. Clone the repository: `git clone https://github.com/EarthSystemDiagnostics/cpt-picarr.git`
 2. Check system requirements.
   - Linux
-  - R version >= 3.4.4
+  - R version >= 3.6.
   - `sudo apt install build-essential libxml2-dev libssl-dev libcurl4-openssl-dev`
 3. Install dependencies: `Rscript install.R`.
 4. Configure the app. Open the file `config.yaml` and set `BASE_PATH` to the directory where you would 
