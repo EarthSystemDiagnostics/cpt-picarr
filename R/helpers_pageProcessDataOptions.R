@@ -215,7 +215,7 @@ processDatasetsWithPiccr <- function(datasetNames, input, project){
   useThreePointCalibration <- as.logical(str_split(input$driftAndCalibration, "/")[[1]][[2]])
   
   processedData <- processDataWithPiccr(
-    datasets, processingOptions, input$useMemoryCorrection, 
+    datasets, processingOptions, as.logical(input$useMemoryCorrection), 
     calibrationFlag, useThreePointCalibration, input$averageOverInj
   )
   return(processedData)

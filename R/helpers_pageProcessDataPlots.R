@@ -75,8 +75,8 @@ pageProcessDataPlots <- function(input, output, session, id,
     )
   })
   
-  # update rv$dataToPlot when a dataset is selected
-  observeEvent(input$datasetForPlotting, {
+  # update rv$dataToPlot when a dataset is selected and when the underlying data changes
+  observeEvent({input$datasetForPlotting; processedData()}, {
     rv$dataToPlot <- list.filter(processedData(), name == input$datasetForPlotting) %>%
       first()
     
@@ -90,7 +90,7 @@ pageProcessDataPlots <- function(input, output, session, id,
   
   # ----- OVERALL UNCERTAINTY -------
   
-  observeEvent(input$datasetForPlotting, {
+  observeEvent(processedData(), {
     
     overallUncertainty <- calculateOverallUncertainty(processedData())
     output$overallUncertainty <- renderRHandsontable(rhandsontable(overallUncertainty))
@@ -235,7 +235,27 @@ pageProcessDataPlots <- function(input, output, session, id,
   })
   
   observeEvent(input$fileMemoryCorrection, {
-    # TODO
+    output$plotOutput <- renderUI({
+      tagList(
+        p(strong("Memory correction: "), "Quality control information from the ",
+          "memory correction process (memory coefficients: mean values and values ",
+          "for each analysed standard)."), br(),
+        plotOutput(ns("plot1")), br(),
+        plotOutput(ns("plot2")), br(),
+        rHandsontableOutput(ns("table"))
+      )
+    })
+    
+    data <- rv$dataToPlot$memoryCoefficients
+    output$plot1 <- renderPlot(ggplot(data, mapping = aes(`Inj Nr`, memoryCoeffD18O)) + 
+                                    geom_point() + 
+                                    geom_path() +
+                                    ggtitle("Mean memory coefficients delta-O18"))
+    output$plot2 <- renderPlot(ggplot(data, mapping = aes(`Inj Nr`, memoryCoeffDD)) + 
+                                 geom_point() + 
+                                 geom_path() +
+                                 ggtitle("Mean memory coefficients delta-H2"))
+    output$table <- renderRHandsontable(rhandsontable(data))
   })
   
   observeEvent(input$fileCalibration, {
@@ -295,7 +315,12 @@ getH2OMeanAndStdDev <- function(data, nInj){
 }
 
 calculateOverallUncertainty <- function(processedData){
-  rmsdD18O <- sqrt(mean(map_dbl(processedData, ~ .$deviationOfControlStandard$d18O)^2))
-  rmsdDD   <- sqrt(mean(map_dbl(processedData, ~ .$deviationOfControlStandard$dD)^2))
+  
+  deviationsD18O <- map_dbl(processedData, ~ last(.$deviationOfControlStandard$d18O))
+  rmsdD18O <- sqrt(mean(deviationsD18O ^ 2))
+                   
+  deviationsDD <- map_dbl(processedData, ~ last(.$deviationOfControlStandard$dD))
+  rmsdDD <- sqrt(mean(deviationsDD ^ 2))
+  
   tibble(d18O = rmsdD18O, dD = rmsdDD)
 }
