@@ -24,23 +24,19 @@ processDataWithPiccr <- function(datasets, processingOptions, useMemoryCorrectio
 
 processDatasets <- function(datasets, processingOptions, config){
   
-  map2(datasets, processingOptions, processSingleDataset, config = config)
+  map2(names(datasets), processingOptions, processSingleDataset, 
+       datasets = datasets,  config = config)
 }
 
-processSingleDataset <- function(dataset, processingOptions, config){
+processSingleDataset <- function(datasetName, processingOptions, datasets, config){
+  
   config$standards <- getOptionsAndTrueValuesForStandards(processingOptions)
   
-  # Output mock data because the new interface is not yet implemented in piccr
-  if (file.exists("piccrMockOutput")) 
-    load("piccrMockOutput")
-  else if (file.exists("../piccrMockOutput"))
-    load("../piccrMockOutput")
-  else
-    load("../../piccrMockOutput")
+  data <- list(datasets[[datasetName]])
+  names(data) <- c(datasetName)
   
-  return(piccrMockOutput)
-  
-  # piccr::processData(list(data = dataset), config)
+  processedData <- piccr::processData(data, config)
+  unlist(processedData, recursive = FALSE)
 }
 
 getOptionsAndTrueValuesForStandards <- function(processingOptions){
