@@ -70,16 +70,15 @@ pageProcessDataPlots <- function(input, output, session, id,
   observeEvent(processingSuccessful(), {
     updateSelectInput(
       session, "datasetForPlotting", 
-      choices = map_chr(processedData(), ~ {assign("temp", ., envir = globalenv()); .[[1]]$name})
+      choices = map_chr(processedData(), ~ .$name)
     )
   })
   
   # update rv$dataToPlot when a dataset is selected
   observeEvent(input$datasetForPlotting, {
     name <- input$datasetForPlotting
-    rv$dataToPlot <- list.filter(processedData(), ~ name == .[[1]]$name) %>%
-      first() %>%
-      .[[1]]
+    rv$dataToPlot <- list.filter(processedData(), ~ name == .$name) %>%
+      first()
     flog.debug("updated dataset to plot")
   })
   
@@ -292,7 +291,7 @@ getH2OMeanAndStdDev <- function(data, nInj){
 }
 
 calculateOverallUncertainty <- function(processedData){
-  rmsdD18O <- sqrt(mean(map_dbl(processedData, ~ .[[1]]$deviationOfControlStandard$d18O)^2))
-  rmsdDD   <- sqrt(mean(map_dbl(processedData, ~ .[[1]]$deviationOfControlStandard$dD)^2))
+  rmsdD18O <- sqrt(mean(map_dbl(processedData, ~ .$deviationOfControlStandard$d18O)^2))
+  rmsdDD   <- sqrt(mean(map_dbl(processedData, ~ .$deviationOfControlStandard$dD)^2))
   tibble(d18O = rmsdD18O, dD = rmsdDD)
 }

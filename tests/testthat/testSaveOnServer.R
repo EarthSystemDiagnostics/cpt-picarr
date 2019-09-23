@@ -31,16 +31,12 @@ test_that("test saving processed data on the server", {
   
   processedData <- list(
     list(
-      list(
-        name = "fileA",
-        processed = tibble(colA = c("a", "b"))
-      )
+      name = "fileA",
+      processed = tibble(colA = c("a", "b"))
     ),
     list(
-      list(
-        name = "fileB",
-        processed = tibble(colB = c(1.4, 5.6))
-      )
+      name = "fileB",
+      processed = tibble(colB = c(1.4, 5.6))
     )
   )
   project <- "Project A"

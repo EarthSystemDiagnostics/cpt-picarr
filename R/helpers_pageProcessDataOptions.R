@@ -171,9 +171,9 @@ downloadProcessedData <- function(file, processedData){
   on.exit(setwd(owd))
   
   flog.debug("Writing files")
-  walk(processedData, ~ write_csv(.[[1]]$processed, .[[1]]$name))
+  walk(processedData, ~ write_csv(.$processed, .$name))
   
-  filenames <- map_chr(processedData, ~ .[[1]]$name)
+  filenames <- map_chr(processedData, ~ .$name)
   flog.debug(str_c("Filenames: ", paste(filenames, collapse = ", ")))
   
   flog.debug("Creating zip archive")
@@ -224,10 +224,9 @@ processDatasetsWithPiccr <- function(datasetNames, input, project){
 saveProcessedDataOnServer <- function(processedData, project, basePath = BASE_PATH){
   
   walk(processedData, ~ {
-    data <- .[[1]]
-    outputDir <- file.path(basePath, project, "data", data$name)
+    outputDir <- file.path(basePath, project, "data", .$name)
     dir.create(outputDir)
-    write_csv(data$processed, file.path(outputDir, "processed.csv"))
+    write_csv(.$processed, file.path(outputDir, "processed.csv"))
   })
 }
 
