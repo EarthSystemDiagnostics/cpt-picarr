@@ -57,7 +57,7 @@ pageProcessDataPlotsUI <- function(id){
 pageProcessDataPlots <- function(input, output, session, id, 
                                  processingSuccessful, processedData, nInj){
 
-    # ---------------- CREATE OWN REACTIVE VALUES ---------
+  # ---------------- CREATE OWN REACTIVE VALUES ---------
   
   rv <- reactiveValues()
   rv$dataToPlot <- NULL
@@ -65,8 +65,9 @@ pageProcessDataPlots <- function(input, output, session, id,
   # create a namespace function
   ns <- NS(id)
   
-  # ----------- UPDATE LIST OF SELECTABLE DATASETS ---------
+  # ---------------- MANAGE STATE ------------------
   
+  # update the list of selectable datasets
   observeEvent(processingSuccessful(), {
     updateSelectInput(
       session, "datasetForPlotting", 
@@ -76,8 +77,7 @@ pageProcessDataPlots <- function(input, output, session, id,
   
   # update rv$dataToPlot when a dataset is selected
   observeEvent(input$datasetForPlotting, {
-    name <- input$datasetForPlotting
-    rv$dataToPlot <- list.filter(processedData(), ~ name == .$name) %>%
+    rv$dataToPlot <- list.filter(processedData(), name == input$datasetForPlotting) %>%
       first()
     flog.debug("updated dataset to plot")
   })
