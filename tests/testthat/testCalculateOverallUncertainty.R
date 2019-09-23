@@ -6,14 +6,10 @@ test_that("test normal case", {
   
   processedData <- list(
     list(
-      list(
-        deviationOfControlStandard = list(d18O = 1, dD = 2)
-      )
+      deviationOfControlStandard = list(d18O = 1, dD = 2)
     ),
     list(
-      list(
-        deviationOfControlStandard = list(d18O = 2, dD = 4)
-      )
+      deviationOfControlStandard = list(d18O = 2, dD = 4)
     )
   )
   

@@ -24,16 +24,12 @@ test_that("test download (1)", {
   
   processedData <- list(
     list(
-      list(
-        name = "df1",
-        processed = df1
-      )
+      name = "df1",
+      processed = df1
     ),
     list(
-      list(
-        name = "df2",
-        processed = df2
-      )
+      name = "df2",
+      processed = df2
     )
   )
   
@@ -54,16 +50,12 @@ test_that("test download (2)", {
   
   processedData <- list(
     list(
-      list(
-        name = "df1",
-        processed = df1
-      )
+      name = "df1",
+      processed = df1
     ),
     list(
-      list(
-        name = "df3",
-        processed = df3
-      )
+      name = "df3",
+      processed = df3
     )
   )
   
