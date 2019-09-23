@@ -24,12 +24,19 @@ processDataWithPiccr <- function(datasets, processingOptions, useMemoryCorrectio
 
 processDatasets <- function(datasets, processingOptions, config){
   
-  map2(datasets, processingOptions, processSingleDataset, config = config)
+  map(names(datasets), processSingleDataset, processingOptions = processingOptions,
+       datasets = datasets,  config = config)
 }
 
-processSingleDataset <- function(dataset, processingOptions, config){
-  config$standards <- getOptionsAndTrueValuesForStandards(processingOptions)
-  piccr::processData(list(data = dataset), config)
+processSingleDataset <- function(datasetName, processingOptions, datasets, config){
+  
+  config$standards <- getOptionsAndTrueValuesForStandards(processingOptions[[datasetName]])
+  
+  data <- list(datasets[[datasetName]])
+  names(data) <- c(datasetName)
+  
+  processedData <- piccr::processData(data, config)
+  unlist(processedData, recursive = FALSE)
 }
 
 getOptionsAndTrueValuesForStandards <- function(processingOptions){
@@ -39,29 +46,9 @@ getOptionsAndTrueValuesForStandards <- function(processingOptions){
                               o18_True = `True delta O18`,
                               H2_True = `True delta H2`, 
                               use_for_drift_correction = `Use for drift correction`, 
-                              use_for_calibration = `Use for calibration`)
+                              use_for_calibration = `Use for calibration`,
+                              use_as_control_standard = `Use as control standard`)
   processingOptionsAsList <- transpose(columnsRenamed)
   
   return(processingOptionsAsList)
-}
-
-#############################################
-
-readInputDatasets <- function(input){
-  datasets <- map(input$files$datapath, ~ read_csv(.))
-  names(datasets) <- input$files$name
-  return(datasets)
-}
-
-loadProcessingOptions <- function(datasets, basePath){
-  # Load processing Options for each dataset from disc. (Using the unique identifier coded
-  # into the `Identifier 2` column)
-  map(datasets, function(dataset){
-    firstIdentifier2 <- first(dataset$`Identifier 2`)
-    uniqueIdentifier <- str_extract(firstIdentifier2, "(?<=_).+$")
-    
-    path <- file.path(basePath, "data", uniqueIdentifier)
-    processingOptions <- read_csv(file.path(path, "processingOptions.csv"))
-    return(processingOptions)
-  })
 }

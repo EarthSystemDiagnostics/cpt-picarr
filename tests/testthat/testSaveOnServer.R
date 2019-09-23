@@ -30,8 +30,14 @@ test_that("test saving sample description and processing options on the server",
 test_that("test saving processed data on the server", {
   
   processedData <- list(
-    fileA = list(processed = list(data = tibble(colA = c("a", "b")))),
-    fileB = list(processed = list(data = tibble(colB = c(1.4, 5.6))))
+    list(
+      name = "fileA",
+      processed = tibble(colA = c("a", "b"))
+    ),
+    list(
+      name = "fileB",
+      processed = tibble(colB = c(1.4, 5.6))
+    )
   )
   project <- "Project A"
   basePath <- file.path(tempdir(), "testSaveProcessedDataOnServer")
@@ -45,10 +51,10 @@ test_that("test saving processed data on the server", {
   expect_true(file.exists(file.path(basePath, project, "data", "fileB", "processed.csv")))
   expect_equal(
     read_csv(file.path(basePath, project, "data", "fileA", "processed.csv")),
-    processedData$fileA$processed$data
+    tibble(colA = c("a", "b"))
   )
   expect_equal(
     read_csv(file.path(basePath, project, "data", "fileB", "processed.csv")),
-    processedData$fileB$processed$data
+    tibble(colB = c(1.4, 5.6))
   )
 })

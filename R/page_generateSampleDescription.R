@@ -81,15 +81,15 @@ pageGenerateSampleDescr <- function(input, output, session, project, serverEnvir
   # store up-to date sample description table
   rv$sampleDescr <- emptySampleDescr
   observeEvent(input$hotSampleDescr, {
-    flog.debug("sample description updated")
     rv$sampleDescr <- hot_to_r(input$hotSampleDescr)
+    flog.debug("sample description updated")
   })
   
   # store up-to date processing options table
   rv$processingOptions <- processingOptionsInitial
   observeEvent(input$hotProcessingOptions, {
-    flog.debug("processing options updated")
     rv$processingOptions <- hot_to_r(input$hotProcessingOptions)
+    flog.debug("processing options updated")
   })
   
   # Used to match measurement data with its sample description and processing template.
@@ -124,16 +124,14 @@ pageGenerateSampleDescr <- function(input, output, session, project, serverEnvir
   })
   
   observeEvent(input$addRowSampleDescr, {
-    data <- hot_to_r(input$hotSampleDescr)
-    rv$sampleDescr <- add_row(data, tray = 1, `Is standard?` = FALSE)
+    rv$sampleDescr <- add_row(rv$sampleDescr, tray = 1, `Is standard?` = FALSE)
   })
   
   observeEvent(input$saveNewTemplateSampleDescr, {
     
     name <- input$templateNameSampleDescr
-    data <- hot_to_r(input$hotSampleDescr)
     
-    helpMessage <- saveNewTemplate(data, name, project(), "sampleDescription")
+    helpMessage <- saveNewTemplate(rv$sampleDescr, name, project(), "sampleDescription")
     output$helpMessageSampleDescr <- renderText(helpMessage)
     
     updateTemplateSelectionListSampleDescr(session, name, project())
@@ -185,21 +183,18 @@ pageGenerateSampleDescr <- function(input, output, session, project, serverEnvir
       sprintf("%s_%s.csv", Sys.Date(), project())
     },
     content = function(file){
-      
       data <- rv$sampleDescr
       rv$uniqueIdentifier <- generateUniqueIdentifer(data)
-      
       downloadSampleDescr(data, file, rv$uniqueIdentifier)
     }
   )
   
   observeEvent(rv$uniqueIdentifier, {
     
-    sampleDescr <- rv$sampleDescr
     processingOptions <- hot_to_r(input$hotProcessingOptions)
     uniqueIdentifier <- rv$uniqueIdentifier
     
-    saveOnServer(sampleDescr, processingOptions, uniqueIdentifier)
+    saveOnServer(rv$sampleDescr, processingOptions, uniqueIdentifier)
     
     # display sucess message
     output$helpMessageDownload <- renderText(sprintf(
@@ -250,6 +245,9 @@ getDataForTemplateSampleDescr <- function(templateName, project) {
   } else {
     file <- file.path(BASE_PATH, project, "templates", "sampleDescription", templateName)
     template <- read_csv(file)
+    # Add invisible prefix to prevent bug where the data for column Identifier 2
+    # won't update when the column is empty.
+    template <- mutate(template, `Identifier 2` = str_c("\U200B", `Identifier 2`))
   }
   return(template)
 }
