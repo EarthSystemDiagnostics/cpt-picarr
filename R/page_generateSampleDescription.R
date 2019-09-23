@@ -220,11 +220,6 @@ saveNewTemplate <- function(data, name, project, mode = "sampleDescription", bas
   
   flog.debug("saving new template to %s", file)
   
-  # Fix bug where the user cannot change the Identifier 2 column whenever it 
-  # consists only of NA values. Fix: prefix all Identifier 2 values with a 
-  # length zero character.
-  mutate(data, `Identifier 2` = str_c("\U200B"), `Identifier 2`)
-  
   dir.create(templateDir, recursive = TRUE)
   write_csv(data, file)
   return("Template successfully saved.")
@@ -250,6 +245,9 @@ getDataForTemplateSampleDescr <- function(templateName, project) {
   } else {
     file <- file.path(BASE_PATH, project, "templates", "sampleDescription", templateName)
     template <- read_csv(file)
+    # Add invisible prefix to prevent bug where the data for column Identifier 2
+    # won't update when the column is empty.
+    template <- mutate(template, `Identifier 2` = str_c("\U200B", `Identifier 2`))
   }
   return(template)
 }
