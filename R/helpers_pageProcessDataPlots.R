@@ -79,6 +79,10 @@ pageProcessDataPlots <- function(input, output, session, id,
   observeEvent(input$datasetForPlotting, {
     rv$dataToPlot <- list.filter(processedData(), name == input$datasetForPlotting) %>%
       first()
+    
+    # don't display old plots
+    output$plotOutput <- renderUI({})
+    
     flog.debug("updated dataset to plot")
   })
   
@@ -86,7 +90,7 @@ pageProcessDataPlots <- function(input, output, session, id,
   
   # ----- OVERALL UNCERTAINTY -------
   
-  observeEvent(processingSuccessful(), {
+  observeEvent(input$datasetForPlotting, {
     
     overallUncertainty <- calculateOverallUncertainty(processedData())
     output$overallUncertainty <- renderRHandsontable(rhandsontable(overallUncertainty))
