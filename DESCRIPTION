@@ -9,7 +9,8 @@ Imports:
     piccr,
     futile.logger,
     digest,
-    rlist
+    rlist,
+    scales
 Suggests:
     testthat,
     devtools

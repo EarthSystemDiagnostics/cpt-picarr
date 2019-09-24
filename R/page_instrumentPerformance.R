@@ -2,6 +2,7 @@ library(shiny)
 library(rlist)
 library(tidyverse)
 library(lubridate)
+library(scales)
 
 #' pageInstrumentPerformanceUI
 #'
@@ -97,11 +98,13 @@ pageInstrumentPerformance <- function(input, output, session, devicesUpdated, se
     output$plot1 <- renderPlot({
       ggplot(deviations) +
         geom_point(mapping = aes(x = date, y = devO18)) +
+        scale_x_date(labels = date_format("%d-%m-%Y")) +
         labs(title = "Deviation of control standard (delta O18)")
     })
     output$plot2 <- renderPlot({
       ggplot(deviations) +
         geom_point(mapping = aes(x = date, y = devH2)) +
+        scale_x_date(labels = date_format("%d-%m-%Y")) +
         labs(title = "Deviation of control standard (delta H2)")
     })
   })
