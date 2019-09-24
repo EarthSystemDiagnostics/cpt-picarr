@@ -121,6 +121,9 @@ pageProcessDataOptions <- function(input, output, session, id, projectDataChange
       outputProcessedData(rv$processedData, serverEnvironment)
       outputNInj(input$averageOverInj, serverEnvironment)
       signalSuccess(serverEnvironment)
+      # signal to other modules that the project data has been changed
+      envir <- get("serverEnvironment", envir = serverEnvironment)
+      evalq(rv$projectDataChanged <- rv$projectDataChanged + 1, envir = envir)
       
       output$helpMessage <- renderText(
         "Data processed successfully. Processed data saved on server.")
