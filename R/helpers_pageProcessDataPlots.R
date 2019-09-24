@@ -68,7 +68,7 @@ pageProcessDataPlots <- function(input, output, session, id,
   # ---------------- MANAGE STATE ------------------
   
   # update the list of selectable datasets
-  observeEvent(processingSuccessful(), {
+  observeEvent(processedData(), {
     updateSelectInput(
       session, "datasetForPlotting", 
       choices = map_chr(processedData(), ~ .$name)
