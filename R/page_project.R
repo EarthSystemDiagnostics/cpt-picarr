@@ -207,8 +207,7 @@ downloadProcessedDataAsZip <- function(project, outputFile, basePath = BASE_PATH
     }
   })
   
-  filesToZip <- list.files(temp, full.names = TRUE)
-  zip(outputFile, filesToZip, flags = "-r9Xj")
+  zip(outputFile, temp, flags = "-r9Xj")
 }
 
 downloadProcessedDataSingleFile <- function(project, outputFile, basePath = BASE_PATH){
