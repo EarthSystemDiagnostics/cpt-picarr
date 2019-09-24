@@ -85,6 +85,9 @@ pageProcessDataOptions <- function(input, output, session, id, projectDataChange
   # --------------- RENDER DATASET SELECTION SECTION -------------
   
   observeEvent(input$selectionType, {
+    
+    rv$datasetNames <- c()
+    
     if (input$selectionType == "date")
       element <- tagList(
         dateRangeInput(ns("dateRange"), "Process all the data in this timespan"),
