@@ -81,7 +81,10 @@ ui <- navbarPage(
     tabPanel(
       "Manage devices",
       pageManageDevicesUI("manageDevices")
-    )
+    ),
+    
+    # add some whitespace at the bottom of each page
+    br(), br(), br(), br()
 )
 
 #' server
