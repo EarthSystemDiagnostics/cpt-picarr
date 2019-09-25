@@ -16,31 +16,36 @@ pageGenerateSampleDescrUI <- function(id){
   ns <- NS(id)
   
   tagList(
-    h2("Generate a sample description file"), 
+    h2("Generate a sample description"), 
     textOutput(ns("projectName")), br(),
     
-    wellPanel(
-      h3("Create a sample description"),
-      selectInput(ns("selectTemplateSampleDescr"), "Select a template", c()), p(""), br(),
-      rHandsontableOutput(ns("hotSampleDescr")), br(),
-      actionButton(ns("addRowSampleDescr"), "+ Add a row"), "(Right click table for more options)", p(""), 
-      hr(),
-      h4("Save as new template"),
-      textInput(ns("templateNameSampleDescr"), "Name the template"),
-      actionButton(ns("saveNewTemplateSampleDescr"), "Save as new template"),
-      textOutput(ns("helpMessageSampleDescr"), inline = TRUE)
-    ),
-    
-    wellPanel(
-      h3("Which standard should be used for what?"),
-      selectInput(ns("selectTemplateProcessing"), "Select a template", c()), p(""), br(),
-      rHandsontableOutput(ns("hotProcessingOptions")), br(),
-      actionButton(ns("addRowProcessing"), "+ Add a row"), "(Right click table for more options)", p(""), 
-      hr(),
-      h4("Save as new template"),
-      textInput(ns("templateNameProcessing"), "Name the template"),
-      actionButton(ns("saveNewTemplateProcessing"), "Save as new template"),
-      textOutput(ns("helpMessageProcessing"), inline = TRUE)
+    fluidRow(
+      column(5,
+        wellPanel(
+          h3("Define measurement sequence"),
+          selectInput(ns("selectTemplateSampleDescr"), "Select a template", c()), p(""), br(),
+          rHandsontableOutput(ns("hotSampleDescr")), br(),
+          actionButton(ns("addRowSampleDescr"), "+ Add a row"), "(Right click table for more options)", p(""), 
+          hr(),
+          h4("Save as new template"),
+          textInput(ns("templateNameSampleDescr"), "Name the template"),
+          actionButton(ns("saveNewTemplateSampleDescr"), "Save as new template"),
+          textOutput(ns("helpMessageSampleDescr"), inline = TRUE)
+        )
+      ), 
+      column(7,
+        wellPanel(
+          h3("Set processing options"),
+          selectInput(ns("selectTemplateProcessing"), "Select a template", c()), p(""), br(),
+          rHandsontableOutput(ns("hotProcessingOptions")), br(),
+          actionButton(ns("addRowProcessing"), "+ Add a row"), "(Right click table for more options)", p(""), 
+          hr(),
+          h4("Save as new template"),
+          textInput(ns("templateNameProcessing"), "Name the template"),
+          actionButton(ns("saveNewTemplateProcessing"), "Save as new template"),
+          textOutput(ns("helpMessageProcessing"), inline = TRUE)
+        )
+      )
     ),
     
     wellPanel(
