@@ -15,4 +15,4 @@ Suggests:
     testthat,
     devtools
 Remotes:
-    EarthSystemDiagnostics/piccr@dev
+    EarthSystemDiagnostics/piccr
