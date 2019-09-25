@@ -16,15 +16,15 @@ pageProcessDataOptionsUI <- function(id){
     radioButtons(ns("useMemoryCorrection"), "Use memory correction?", c("Yes" = TRUE, "No" = FALSE)),
     radioButtons(ns("driftAndCalibration"), "Drift correction and calibration options", 
                  choiceNames = list(
-                   "Use linear drift correction and two-point calibration" ,
-                   "Use linear drift correction and three-point calibration",
-                   "Use double two-point calibration",
-                   "Use double three-point calibration",
-                   "Use only two-point calibration, without drift correction",
-                   "Use only three-point calibration, without drift correction"),
+                   "Apply two-point calibration without drift correction",
+                   "Apply three-point calibration without drift correction",
+                   "Apply two-point calibration and linear drift correction",
+                   "Apply three-point calibration and linear drift correction",
+                   "Apply double two-point calibration",
+                   "Apply double three-point calibration"),
                  choiceValues = list(
                    # "x/y": x is the calibration flag, y indicates if three-point calibration is to be used.
-                   "1/F", "1/T", "2/F", "2/T", "0/F", "0/T"
+                   "0/F", "0/T", "1/F", "1/T", "2/F", "2/T"
                  )),
     selectizeInput(
       ns("averageOverInj"), "Average over the last n injections (selecting datasets updates choices)", c("all")),
