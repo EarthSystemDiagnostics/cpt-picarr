@@ -16,4 +16,9 @@ Rscript \
   -e "install.packages('scales')" \
   -e "devtools::install_github('EarthSystemDiagnostics/piccr', ref = 'dev')"
 
+echo Step 3: cloning Cpt.-Picarr repository
+
+git clone https://github.com/EarthSystemDiagnostics/cpt-picarr.git
+
 echo done.
+
