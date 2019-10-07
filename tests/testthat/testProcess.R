@@ -28,7 +28,7 @@ test_that("overage over all inj", {
 
   processedData <- processDataWithPiccr(
     datasets, processingOptions, useMemoryCorrection = T, calibrationFlag = 1,
-    useThreePointCalibration = T, averageOverLastNInj = "all")
+    useThreePointCalibration = T, averageOverInj = "all")
 
   expect_length(processedData, 2)
   
@@ -57,7 +57,7 @@ test_that("overage over 2 inj", {
 
   processedData <- processDataWithPiccr(
     datasets, processingOptions, useMemoryCorrection = T, calibrationFlag = 1,
-    useThreePointCalibration = T, averageOverLastNInj = 2)
+    useThreePointCalibration = T, averageOverInj = 2)
 
   expect_length(processedData, 2)
   
@@ -86,11 +86,11 @@ test_that("number of inj to average over matters", {
 
   processedDataTwoInj <- processDataWithPiccr(
     datasets, processingOptions, useMemoryCorrection = T, calibrationFlag = 1,
-    useThreePointCalibration = T, averageOverLastNInj = 2)
+    useThreePointCalibration = T, averageOverInj = 2)
 
   processedDataAllInj <- processDataWithPiccr(
     datasets, processingOptions, useMemoryCorrection = T, calibrationFlag = 1,
-    useThreePointCalibration = T, averageOverLastNInj = "all")
+    useThreePointCalibration = T, averageOverInj = "all")
 
   expect_failure(expect_equal(processedDataAllInj[[1]]$processed, processedDataTwoInj[[1]]$processed))
   expect_failure(expect_equal(processedDataAllInj[[2]]$processed, processedDataTwoInj[[2]]$processed))
