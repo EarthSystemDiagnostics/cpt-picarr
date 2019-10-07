@@ -176,7 +176,6 @@ pageProcessDataPlots <- function(input, output, session, id,
       )
     })
     
-    nInj <- # TODO
     # use the calibrated data, because it has the column "block"
     data <- getH2OMeanAndStdDev(rv$dataToPlot$calibrated, nInj())
       
@@ -298,10 +297,17 @@ getH2OMeanAndStdDev <- function(data, nInj){
       group_by(`Identifier 1`, block) %>% 
       summarise(H2OMean = mean(H2O_Mean), H2OSD = sd(H2O_Mean), Line = min(Line))
   } else {
-    aggregatedData <- data %>%
-      group_by(`Identifier 1`, block) %>% 
-      slice((n()-nInj+1):n()) %>%
-      summarise(H2OMean = mean(H2O_Mean), H2OSD = sd(H2O_Mean), Line = min(Line))
+    nInj <- eval(parse(text = nInj))
+    if (length(nInj) == 1)
+      aggregatedData <- data %>%
+        group_by(`Identifier 1`, block) %>% 
+        slice((n()-nInj+1):n()) %>%
+        summarise(H2OMean = mean(H2O_Mean), H2OSD = sd(H2O_Mean), Line = min(Line))
+    else
+      aggregatedData <- data %>%
+        group_by(`Identifier 1`, block) %>% 
+        slice(nInj) %>%
+        summarise(H2OMean = mean(H2O_Mean), H2OSD = sd(H2O_Mean), Line = min(Line))
   }
   orderedData <- aggregatedData %>%
     arrange(Line) %>%
