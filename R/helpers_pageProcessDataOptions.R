@@ -26,8 +26,11 @@ pageProcessDataOptionsUI <- function(id){
                    # "x/y": x is the calibration flag, y indicates if three-point calibration is to be used.
                    "0/F", "0/T", "1/F", "1/T", "2/F", "2/T"
                  )),
-    selectizeInput(
-      ns("averageOverInj"), "Average over the last n injections (selecting datasets updates choices)", c("all")),
+    radioButtons(ns("accumulation"), "How should the injections be accumulated?", 
+                 choices = list("Average over all injections" = "all", "Average over last n injections" = "last",
+                                "Average over a specific range of injections" = "range"),
+                 selected = NA),
+    uiOutput(ns("accumulationSpace")),
     h4("All set up?"), br(),
     actionButton(ns("doProcess"), "Process the data", style = blue),
     downloadButton(ns("download"), "Download the processed data"),
@@ -41,7 +44,8 @@ pageProcessDataOptions <- function(input, output, session, id, projectDataChange
   # ---------------- CREATE OWN REACTIVE VALUES ---------
   
   rv <- reactiveValues()
-  rv$datasetNames <- c()  # type: vector of character vectors
+  rv$datasetNames <- c()
+  rv$averageOverInj <- NULL
   
   # create a namespace function
   ns <- NS(id)
@@ -75,11 +79,18 @@ pageProcessDataOptions <- function(input, output, session, id, projectDataChange
               paste(rv$datasetNames, collapse = ", ")))
   })
   
+  # keep rv$averageOverInj up to date
+  observeEvent(input$averageOverInj, rv$averageOverInj <- input$averageOverInj)
+  observeEvent(input$averageRange, rv$averageOverInj <- sprintf("%i:%i", input$averageRange[[1]], input$averageRange[[2]]))
+  
+  # keep rv$nInj up to date in calling environment
+  observeEvent(rv$averageOverInj, outputNInj(rv$averageOverInj, serverEnvironment))
+  
   # update possible choices for number of injections to average over
   observeEvent(rv$datasetNames, {
     req(rv$datasetNames)
     minInjCount <- getMinInjectionCount(rv$datasetNames, project())
-    updateSelectInput(session, "averageOverInj", choices = c("all", 1:minInjCount))
+    updateSelectInput(session, "averageOverInj", choices = 1:minInjCount)
   })
   
   # --------------- RENDER DATASET SELECTION SECTION -------------
@@ -103,6 +114,26 @@ pageProcessDataOptions <- function(input, output, session, id, projectDataChange
     output$selectionSpace <- renderUI(element)
   })
   
+  # -------------- RENDER ACCUMULATION OPTIONS SECTION -----
+  
+  observeEvent(input$accumulation, {
+    
+    if (input$accumulation == "all"){
+      output$accumulationSpace <- renderUI({})
+      rv$averageOverInj <- "all"
+    } else if (input$accumulation == "last"){
+      output$accumulationSpace <- renderUI({
+        selectizeInput(ns("averageOverInj"), 
+                       "Average over the last n injections (selecting datasets updates choices)", 
+                       choices = 1:getMinInjectionCount(rv$datasetNames, project()))
+      })
+    } else if (input$accumulation == "range")
+      output$accumulationSpace <- renderUI({
+        sliderInput(ns("averageRange"), label = "Average over a specific range of injections (selecting datasets updates choices)", 
+                    min = 1, max = getMinInjectionCount(rv$datasetNames, project()), value = c(min, max))
+      })
+  })
+  
   # --------------- PROCESS DATA ---------------
   
   observeEvent(input$doProcess, {
@@ -115,11 +146,10 @@ pageProcessDataOptions <- function(input, output, session, id, projectDataChange
     Sys.sleep(1)
     
     tryCatch({
-      rv$processedData <- processDatasetsWithPiccr(datasetNames, input, project())
+      rv$processedData <- processDatasetsWithPiccr(datasetNames, input, rv$averageOverInj, project())
       
       saveProcessedDataOnServer(rv$processedData, project())
       outputProcessedData(rv$processedData, serverEnvironment)
-      outputNInj(input$averageOverInj, serverEnvironment)
       signalSuccess(serverEnvironment)
       # signal to other modules that the project data has been changed
       envir <- get("serverEnvironment", envir = serverEnvironment)
@@ -210,7 +240,7 @@ getNamesOfDatasetsInProject <- function(project, basePath = BASE_PATH){
   list.dirs(file.path(basePath, project, "data"), recursive = FALSE, full.names = FALSE)
 }
 
-processDatasetsWithPiccr <- function(datasetNames, input, project){
+processDatasetsWithPiccr <- function(datasetNames, input, averageOverInj, project){
   
   datasets <- loadSelectedDatasets(datasetNames, project)
   processingOptions <- loadSelectedProcessingOptions(datasetNames, project)
@@ -220,9 +250,11 @@ processDatasetsWithPiccr <- function(datasetNames, input, project){
   calibrationFlag <- as.numeric(str_split(input$driftAndCalibration, "/")[[1]][[1]])
   useThreePointCalibration <- as.logical(str_split(input$driftAndCalibration, "/")[[1]][[2]])
   
+  print(averageOverInj)
+  
   processedData <- processDataWithPiccr(
     datasets, processingOptions, as.logical(input$useMemoryCorrection), 
-    calibrationFlag, useThreePointCalibration, input$averageOverInj
+    calibrationFlag, useThreePointCalibration, averageOverInj
   )
   return(processedData)
 }
@@ -257,6 +289,8 @@ loadSelectedProcessingOptions <- function(selected, project, basePath = BASE_PAT
 
 #' Get the smallest number of injections for any sample in the selected datasets
 getMinInjectionCount <- function(datasetNames, project, basePath = BASE_PATH){
+  
+  if (is.null(datasetNames)) return(1)
   
   datasets <- loadSelectedDatasets(datasetNames, project)
   minInjCountsSelectedDatasets <- map_dbl(datasets, ~ {
