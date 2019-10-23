@@ -99,32 +99,38 @@ pageProcessDataPlots <- function(input, output, session, id,
   # ------------- DATA --------------
   
   observeEvent(input$dataRaw, {
-    description <- p(strong("Raw data: "), "The original measurement data before any processing was done.")
     data <- rv$dataToPlot$raw
+    req(data)
+    description <- p(strong("Raw data: "), "The original measurement data before any processing was done.")
     dataOutput(output, data = data, description = description, ns = ns)
   })
   observeEvent(input$dataMemoryCorrected, {
-    description <- p(strong("Memory corrected data: "), "The data after applying the memory correction.")
     data <- rv$dataToPlot$memoryCorrected
+    req(data)
+    description <- p(strong("Memory corrected data: "), "The data after applying the memory correction.")
     dataOutput(output, data = data, description = description, ns = ns)
   })
   observeEvent(input$dataCalibrated, {
-    description <- p(strong("Calibrated data: "), "The data after applying only a calibration using first-block standards.")
     data <- rv$dataToPlot$calibrated
+    req(data)
+    description <- p(strong("Calibrated data: "), "The data after applying only a calibration using first-block standards.")
     dataOutput(output, data = data, description = description, ns = ns)
   })
   observeEvent(input$dataDrift, {
+    data <- rv$dataToPlot$calibratedAndDriftCorrected
+    req(data)
     description <- p(strong("Calibrated and drift corrected data: "), 
                      "The data after applying a linear drift correction and a calibration using", 
                      "first-block standards, or after applying a double calibration (with inherent drift correction).")
-    data <- rv$dataToPlot$calibratedAndDriftCorrected
     dataOutput(output, data = data, description = description, ns = ns)
   })
   observeEvent(input$dataProcessed, {
+    data <- rv$dataToPlot$processed
+    req(data)
+    
     output$plotOutput  <- renderDataUI(ns)
     
     description <- p(strong("Processed data: "), "The final data from averaging across n injections.")
-    data <- rv$dataToPlot$processed
     output$description <- renderUI(description)
     output$plotD18O    <- renderPlot(ggplot(data, mapping = aes(Line, `delta.O18`)) + geom_point() + ggtitle("delta O-18"))
     output$plotDD      <- renderPlot(ggplot(data, mapping = aes(Line, `delta.H2`)) + geom_point() + ggtitle("delta H2"))
@@ -135,6 +141,9 @@ pageProcessDataPlots <- function(input, output, session, id,
   # ------------- INJECTION-LEVEL STATS ---------
   
   observeEvent(input$injWaterLevel, {
+    data <- rv$dataToPlot$raw
+    req(data)
+    
     output$plotOutput <- renderUI({
       tagList(
         p(strong("Water level: "), "Water vapour level (mean and standard deviation) during the injection."), br(),
@@ -143,12 +152,14 @@ pageProcessDataPlots <- function(input, output, session, id,
       )
     })
     
-    data <- rv$dataToPlot$raw
     output$plotMean <- renderPlot(ggplot(data, mapping = aes(Line, H2O_Mean)) + geom_point() + ggtitle("Mean water level"))
     output$plotStdDev <- renderPlot(ggplot(data, mapping = aes(Line, H2O_SD)) + geom_point() + ggtitle("Std dev of water level"))
   })
   
   observeEvent(input$injStdDev, {
+    data <- rv$dataToPlot$raw
+    req(data)
+    
     output$plotOutput <- renderUI({
       tagList(
         p(strong("Standard deviation: "), "Standard deviation of the injection value for each measured",
@@ -158,7 +169,6 @@ pageProcessDataPlots <- function(input, output, session, id,
       )
     })
     
-    data <- rv$dataToPlot$raw
     output$plotD18O <- renderPlot(ggplot(data, mapping = aes(Line, `d(18_16)_SD`)) + geom_point() + ggtitle("Std dev for delta O-18"))
     output$plotDD <- renderPlot(ggplot(data, mapping = aes(Line, `d(D_H)_SD`)) + geom_point() + ggtitle("Std dev for delta H2"))
   })
@@ -166,6 +176,9 @@ pageProcessDataPlots <- function(input, output, session, id,
   # --------- SAMPLE-LEVEL STATS ------------
   
   observeEvent(input$sampleWaterLevel, {
+    data <- rv$dataToPlot$calibrated
+    req(data)
+    
     output$plotOutput <- renderUI({
       tagList(
         p(strong("Water level: "), "The mean water vapour level and its ",
@@ -176,9 +189,8 @@ pageProcessDataPlots <- function(input, output, session, id,
       )
     })
     
-    nInj <- # TODO
     # use the calibrated data, because it has the column "block"
-    data <- getH2OMeanAndStdDev(rv$dataToPlot$calibrated, nInj())
+    data <- getH2OMeanAndStdDev(data, nInj())
       
     output$plotMean <- renderPlot(ggplot(data, mapping = aes(Line, H2OMean)) + geom_point() + ggtitle("Mean water level"))
     output$plotStdDev <- renderPlot(ggplot(data, mapping = aes(Line, H2OSD)) + geom_point() + ggtitle("Std dev of mean water level"))
@@ -186,6 +198,9 @@ pageProcessDataPlots <- function(input, output, session, id,
   })
   
   observeEvent(input$sampleStdDev, {
+    data <- rv$dataToPlot$processed
+    req(data)
+    
     output$plotOutput <- renderUI({
       tagList(
         p(strong("Standard deviation: "), "The standard deviation of the mean isotope value 
@@ -195,12 +210,14 @@ pageProcessDataPlots <- function(input, output, session, id,
       )
     })
     
-    data <- rv$dataToPlot$processed
     output$plotD18O <- renderPlot(ggplot(data, mapping = aes(Line, sd.O18)) + geom_point() + ggtitle("Std dev for delta O-18"))
     output$plotDD <- renderPlot(ggplot(data, mapping = aes(Line, sd.H2)) + geom_point() + ggtitle("Std dev for delta H2"))
   })
   
   observeEvent(input$sampleDevFromTrue, {
+    data <- rv$dataToPlot$deviationsFromTrue
+    req(data)
+    
     output$plotOutput <- renderUI({
       tagList(
         p(strong("Deviation from true value: "), "The deviation from the true isotope value (only for standards)."), br(),
@@ -208,13 +225,17 @@ pageProcessDataPlots <- function(input, output, session, id,
       )
     })
     
-    data <- rv$dataToPlot$deviationsFromTrue
     output$table <- renderRHandsontable(rhandsontable(data))
   })
   
   # -------------- FILE-LEVEL STATS ---------------
   
   observeEvent(input$fileGeneralStats, {
+    
+    req(rv$dataToPlot$deviationOfControlStandard)
+    req(rv$dataToPlot$rmsdDeviationsFromTrue)
+    req(rv$dataToPlot$pooledSD)
+    
     output$plotOutput <- renderUI({
       tagList(
         p(strong("General stats")), br(),
@@ -235,6 +256,9 @@ pageProcessDataPlots <- function(input, output, session, id,
   })
   
   observeEvent(input$fileMemoryCorrection, {
+    data <- rv$dataToPlot$memoryCoefficients
+    req(data)
+    
     output$plotOutput <- renderUI({
       tagList(
         p(strong("Memory correction: "), "Quality control information from the ",
@@ -246,7 +270,6 @@ pageProcessDataPlots <- function(input, output, session, id,
       )
     })
     
-    data <- rv$dataToPlot$memoryCoefficients
     output$plot1 <- renderPlot(ggplot(data, mapping = aes(`Inj Nr`, memoryCoeffD18O)) + 
                                     geom_point() + 
                                     geom_path() +
