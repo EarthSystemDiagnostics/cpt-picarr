@@ -35,11 +35,11 @@ You can find some more information and screenshots in [this presentation](https:
    Talk to your IT department about this.
 2. Proceed with the steps listed under "Run Cpt-Picarr locally".
 
-### Bugs and Questions
+## Bugs and Questions
 
 If you encounter bugs or have any questions, feel free to [open an issue](https://github.com/EarthSystemDiagnostics/cpt-picarr/issues).
 
-### How does Cpt-Picarr store data?
+## How does Cpt-Picarr store data?
 
 In the config.yaml users specify a `BASE_PATH`. This should be an absolute path to a directory that will contain
 all data associated with Cpt-Picarr. The structure of the `BASE_PATH` directory will be as follows:
