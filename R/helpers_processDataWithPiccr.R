@@ -35,7 +35,7 @@ processSingleDataset <- function(datasetName, processingOptions, datasets, confi
   data <- list(datasets[[datasetName]])
   names(data) <- c(datasetName)
   
-  processedData <- piccr::processData(data, config)
+  processedData <- stats::setNames(piccr::processData(data, config), NULL)
   unlist(processedData, recursive = FALSE)
 }
 
