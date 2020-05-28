@@ -12,7 +12,7 @@ Cpt-Picarr is a graphical tool to help you do stable water isotope analysis. It 
 - Visualize the measurement data
 - Analyze the performance of your measurement instruments
 
-Cpt. Picarr relies on the [piccr](https://github.com/EarthSystemDiagnostics/piccr/tree/dev) package for calibration, memory correction, and drift correction.
+Cpt. Picarr relies on the [piccr](https://github.com/EarthSystemDiagnostics/piccr) package for calibration, memory correction, and drift correction.
 
 In Cpt. Picarr your measurement data is divided into projects. Each project contains all datasets belonging to specific research task (e.g. one expedition, one researcher, one paper).
 
